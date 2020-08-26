@@ -214,7 +214,7 @@ function SWEP:Shoot(forceTargetPos)
 	
 	if not self.Primary.InfiniteAmmo then
 	
-		self:TakePrimaryAmmo(100)
+		self:TakePrimaryAmmo(1)
 	
 	end
 	
