@@ -14,14 +14,14 @@ SWEP.IsNPCWeapon				= true
 
 SWEP.WorldModel					= "models/weapons/w_pistol.mdl" --What model should we use as the world model?
 SWEP.ClientModel				= nil --Structure used to render clientside models. The world model is not drawn if a client model exists. { model : String, pos : Vector, angle : Angle, size : Vector, color : Color, skin : Number, bodygroup : Table, bone : String }
-SWEP.HoldType					= "pistol" --Which animation set should we use? Note that most animations only differ on npc_citizen. [pistol - aim down sight while moving, pistol reload / smg - fire from hip while moving, smg reload / ar2 - aim down sight while moving, smg reload / shotgun - fire from hip while moving, shotgun reload / rpg - rpg idle, aim down sight while moving, smg reload]
+SWEP.HoldType					= "pistol" --Which animation set should we use? "pistol": Hold like a pistol. Note that only half of the HL2 NPCs have pistol animations, the other ones will hold it like an SMG. "smg": Hold like an SMG, close to the hip while running. The offhand holds a vertical grip. "ar2": Hold like a rifle, high and at shoulder level. The offhand lays flat (when the NPC has animations for it). "shotgun": Hold low to the hip. Note that reloads will play a shotgun cocking sound if the holder is a female npc_citizen. "rpg": Hold high and on top of the shoulder.
 
 SWEP.MuzzleAttachment			= "1" --Where the muzzleflash and bullet should come out of on the weapon. Most models have this as 1 or "muzzle".
 SWEP.ShellAttachment			= "2" --Where the bullet casing should come out of on the weapon. Most models have this as 2.
 SWEP.MuzzleEffect    			= "MuzzleEffect" --Which effect to use as the muzzleflash.
 SWEP.ShellEffect				= "ShellEject" --Which effect to use as the bullet casing.
 SWEP.TracerEffect				= "Tracer" --Which effect to use as the bullet tracer.
-SWEP.ReloadSounds				= nil --Which sounds should we play when the gun is being reloaded? Should be a matrix of {delay, sound}, eg. {{0, "ak47_clipout"}, {0.8, "ak47_clipin"}}
+SWEP.ReloadSounds				= nil --Which sounds should we play when the gun is being reloaded? Should be a table of tables of {delay, sound}, eg. {{0, "ak47_clipout"}, {0.8, "ak47_clipin"}}
 SWEP.TracerX					= 1 --For every X bullets, show the tracer effect.
 SWEP.EnableTracerEffect    		= true --Enable tracer?
 SWEP.EnableMuzzleEffect    		= true --Enable muzzleflash?
@@ -51,14 +51,14 @@ SWEP.Primary.Sound				= "weapons/pistol/pistol_fire2.wav" --What sound should we
 SWEP.Primary.Ammo				= "pistol" --The ammo type of the weapon. This doesn't do anything at the moment, but if picking up these guns is ever implemented then this is the ammo type that you would get.
 SWEP.Primary.InfiniteAmmo		= false --Should we never have to reload?
 
-SWEP.ForceWalking				= false --Should NPCs be forced to walk when holding this weapon?
+SWEP.ForceWalking				= false --Should NPCs be forced to walk when shooting this weapon?
 SWEP.ForceWalkingTime			= 0 --How long to force NPCs to walk after shooting.
 
 SWEP.LastEnemy					= nil --This value is used to store the owners last enemy, don't touch it.
 SWEP.LastActivity				= nil --This value is used to store the owners last activity, don't touch it.
 SWEP.LastTargetPos				= nil --This value is used to store the last shot position, don't touch it.
 
-SWEP.AimForHeadTable			= {
+SWEP.AimForHeadTable			= { --Which NPC classes to use NPC.HeadTarget() instead of NPC.BodyTarget() on. You probably shouldn't change this.
 	npc_combine_s = true,
 	npc_citizen = true,
 	npc_alyx = true,
