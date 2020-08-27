@@ -66,7 +66,8 @@ SWEP.LastEnemy					= nil --This value is used to store the owners last enemy, do
 SWEP.LastActivity				= nil --This value is used to store the owners last activity, don't touch it.
 SWEP.LastTargetPos				= nil --This value is used to store the last shot position, don't touch it.
 
-SWEP.AimForHeadTable			= { --Which NPC classes to use NPC.HeadTarget() instead of NPC.BodyTarget() on. You probably shouldn't change this.
+SWEP.AimForHeadTable			= { --Which entity classes to use HeadTarget() instead of BodyTarget() on. Only change this if you want NPCs to aim at the body instead of the head.
+	player = true,
 	npc_combine_s = true,
 	npc_citizen = true,
 	npc_alyx = true,
@@ -159,33 +160,37 @@ function SWEP:Shoot(forceTargetPos)
 	
 	if not targetPos then
 
-		if enemy:IsPlayer() then
+		local enemyClass = enemy:GetClass()
+		if self.AimForHeadTable[enemyClass] then
 
-			local headBone = enemy:LookupBone("ValveBiped.Bip01_Head1")
-			targetPos = (headBone and enemy:GetBonePosition(headBone)) or enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter()
+			if enemy:IsPlayer() then
 
+				local headBone = enemy:LookupBone("ValveBiped.Bip01_Head1")
+				targetPos = (headBone and enemy:GetBonePosition(headBone)) or enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter()
+	
+			elseif enemyClass == "npc_combine_s" then -- Special logic for npc_combine_s because NPC:HeadTarget() doesn't return a good position when used on npc_combine_s
+	
+				local headBone = enemy:LookupBone("ValveBiped.Bip01_Head1")
+				targetPos = (headBone and enemy:GetBonePosition(headBone)) or enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter()
+	
+			else
+	
+				targetPos = enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter()
+	
+			end
+	
 		else
 
-			local enemyClass = enemy:GetClass()
-			if self.AimForHeadTable[enemyClass] then
-		
-				if enemyClass == "npc_combine_s" then -- Special logic for npc_combine_s because NPC:HeadTarget() doesn't return a good position when used on npc_combine_s
-		
-					local headBone = enemy:LookupBone("ValveBiped.Bip01_Head1")
-					targetPos = (headBone and enemy:GetBonePosition(headBone)) or enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter()
-		
-				else
-		
-					targetPos = enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter()
-		
-				end
-		
-			else
-		
-				targetPos = enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter()
-		
-			end
+			if enemy:IsPlayer() then
 
+				targetPos = enemy:WorldSpaceCenter() -- For some reason Player:BodyTarget() returns the head position so it's not usable here
+	
+			else
+	
+				targetPos = enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter()
+	
+			end
+	
 		end
 
 	end
