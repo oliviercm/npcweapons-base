@@ -8,7 +8,7 @@
 
 SWEP.PrintName					= "NPC Weapon Base"
 SWEP.Author						= "xyzzy"
-SWEP.Contact					= "http://steamcommunity.com/id/theRealXyzzy/"
+SWEP.Contact					= "https://steamcommunity.com/id/theRealXyzzy/"
 SWEP.Category					= "NPC Weapons"
 SWEP.IsNPCWeapon				= true
 
@@ -21,11 +21,12 @@ SWEP.ShellAttachment			= "2" --Where the bullet casing should come out of on the
 SWEP.MuzzleEffect    			= "MuzzleEffect" --Which effect to use as the muzzleflash.
 SWEP.ShellEffect				= "ShellEject" --Which effect to use as the bullet casing.
 SWEP.TracerEffect				= "Tracer" --Which effect to use as the bullet tracer.
-SWEP.ReloadSounds				= nil --Which sounds should we play when the gun is being reloaded? Should be a table of tables of {delay, sound}, eg. {{0, "ak47_clipout"}, {0.8, "ak47_clipin"}}
+SWEP.ReloadSounds				= nil --Which sounds should we play when the gun is being reloaded? Should be a table of tables of {delay, sound}, eg. {{0, "ak47_clipout"}, {0.8, "ak47_clipin"}}. I highly recommend you use a soundscript here instead of a path to a raw sound file. Also, I recommend using CHAN_AUTO instead of CHAN_WEAPON here or your reload sound will stop and overwrite firing sounds (cutting them off), making it sound bad.
 SWEP.TracerX					= 1 --For every X bullets, show the tracer effect.
 SWEP.EnableTracerEffect    		= true --Enable tracer?
 SWEP.EnableMuzzleEffect    		= true --Enable muzzleflash?
 SWEP.EnableShellEffect    		= true --Enable shell casings?
+SWEP.ExtraShootEffects			= nil --Which extra effects should we use when shooting? This is useful if you want to display extra effects such as an explosion at the impact: { { EffectName = "Explosion" } } or an extra tracer: { { EffectName = "MyCustomTracer" } }. The effects should all be in one table, even if there is only 1 extra effect, so for example, if you wanted to use the two effects from before: { { EffectName = "Explosion" }, { EffectName = "MyCustomTracer" } }. You can add the following keys to each effect: "Scale", "Magnitude", "Radius" eg. { EffectName = "Explosion", Magnitude = 1337 }
 
 SWEP.ReloadTime					= 0 --How long should reloads last in seconds? NPCs will not be able to fire for this much time after starting a reload.
 SWEP.Primary.DamageMin			= 0 --How much minimum damage each bullet should do. Rule of thumb is average damage should be around 4-8 for small caliber weapons like pistols, 8-12 for medium caliber weapons like rifles, and 15+ for large caliber weapons like sniper rifles.
@@ -47,7 +48,7 @@ SWEP.Primary.ClipSize			= 0 --How many shots should we get per reload?
 SWEP.Primary.DefaultClip		= 0 --How many shots should the weapon spawn with in the magazine? Usually you want this the same as SWEP.Primary.ClipSize.
 SWEP.Primary.AimDelayMin		= 0 --How long should we wait before shooting a new enemy, at minimum?
 SWEP.Primary.AimDelayMax		= 0 --How long should we wait before shooting a new enemy, at maximum?
-SWEP.Primary.Sound				= "weapons/pistol/pistol_fire2.wav" --What sound should we play when the gun fires?
+SWEP.Primary.Sound				= "weapons/pistol/pistol_fire2.wav" --What sound should we play when the gun fires? Multiple sounds can be added by using a table: {"sound_1", "sound_2", "sound_3"}. A random sound will be chosen. I recommend using a soundscript instead of a path to a raw sound file. I also recommend using CHAN_WEAPON here as the audio channel.
 SWEP.Primary.Ammo				= "pistol" --The ammo type of the weapon. This doesn't do anything at the moment, but if picking up these guns is ever implemented then this is the ammo type that you would get.
 SWEP.Primary.InfiniteAmmo		= false --Should we never have to reload?
 
