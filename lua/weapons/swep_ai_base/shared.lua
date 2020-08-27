@@ -32,7 +32,8 @@ SWEP.TracerX					= 1 --For every X bullets, show the tracer effect.
 SWEP.EnableTracerEffect    		= true --Enable tracer?
 SWEP.EnableMuzzleEffect    		= true --Enable muzzleflash?
 SWEP.EnableShellEffect    		= true --Enable shell casings?
-SWEP.ExtraShootEffects			= nil --Which extra effects should we use when shooting? This is useful if you want to display extra effects such as an explosion at the impact: { { EffectName = "Explosion" } } or an extra tracer: { { EffectName = "MyCustomTracer" } }. The effects should all be in one table, even if there is only 1 extra effect, so for example, if you wanted to use the two effects from before: { { EffectName = "Explosion" }, { EffectName = "MyCustomTracer" } }. You can add the following keys to each effect: "Scale", "Magnitude", "Radius" eg. { EffectName = "Explosion", Magnitude = 1337 }
+SWEP.ExtraShootEffects			= nil --Which extra effects should we use when shooting? This is useful if you want to display extra effects such as extra tracers, hit location effects, extra muzzleflashes, etc. Ex. Explosion at impact point: { { EffectName = "Explosion" } } or an extra tracer: { { EffectName = "GunshipTracer" } } or an extra muzzleflash { { EffectName: "ChopperMuzzleFlash" } }. The effects should all be in a table, so for example, if you wanted to use the two effects from before: { { EffectName = "Explosion" }, { EffectName = "ChopperMuzzleFlash" } }. You can add the following keys to each effect: "Scale", "Magnitude", "Radius" eg. { EffectName = "Explosion", Magnitude = 1337 }
+SWEP.ImpactDecal				= nil --What decal should we display at the impact point?
 
 SWEP.ReloadTime					= 0 --How long should reloads last in seconds? NPCs will not be able to fire for this much time after starting a reload.
 SWEP.Primary.DamageMin			= 0 --How much minimum damage each bullet should do. Rule of thumb is average damage should be around 4-8 for small caliber weapons like pistols, 8-12 for medium caliber weapons like rifles, and 15+ for large caliber weapons like sniper rifles.
@@ -256,6 +257,12 @@ function SWEP:FireBulletsCallback(tr, dmgInfo)
 		effect:SetMagnitude(shootEffect.Magnitude or 1)
 		effect:SetAttachment(weapon.MuzzleAttachment or 1)
 		util.Effect(shootEffect.EffectName or "", effect)
+
+	end
+
+	if weapon.ImpactDecal then
+
+		util.Decal(weapon.ImpactDecal, tr.HitPos + tr.HitNormal, tr.HitPos - tr.HitNormal)
 
 	end
 
