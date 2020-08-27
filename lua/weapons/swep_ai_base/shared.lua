@@ -19,7 +19,13 @@ SWEP.HoldType					= "pistol" --Which animation set should we use? "pistol": Hold
 SWEP.MuzzleAttachment			= "1" --Where the muzzleflash and bullet should come out of on the weapon. Most models have this as 1 or "muzzle".
 SWEP.ShellAttachment			= "2" --Where the bullet casing should come out of on the weapon. Most models have this as 2.
 SWEP.MuzzleEffect    			= "MuzzleEffect" --Which effect to use as the muzzleflash.
+SWEP.MuzzleEffectScale    		= 1 --Muzzle effect scale.
+SWEP.MuzzleEffectRadius    		= 1 --Muzzle effect radius.
+SWEP.MuzzleEffectMagnitude    	= 1 --Muzzle effect magnitude.
 SWEP.ShellEffect				= "ShellEject" --Which effect to use as the bullet casing.
+SWEP.ShellEffectScale    		= 1 --Shell effect scale.
+SWEP.ShellEffectRadius    		= 1 --Shell effect radius.
+SWEP.ShellEffectMagnitude    	= 1 --Shell effect magnitude.
 SWEP.TracerEffect				= "Tracer" --Which effect to use as the bullet tracer.
 SWEP.ReloadSounds				= nil --Which sounds should we play when the gun is being reloaded? Should be a table of tables of {delay, sound}, eg. {{0, "ak47_clipout"}, {0.8, "ak47_clipin"}}. I highly recommend you use a soundscript here instead of a path to a raw sound file. Also, I recommend using CHAN_AUTO instead of CHAN_WEAPON here or your reload sound will stop and overwrite firing sounds (cutting them off), making it sound bad.
 SWEP.TracerX					= 1 --For every X bullets, show the tracer effect.
@@ -246,9 +252,9 @@ function SWEP:FireBulletsCallback(tr, dmgInfo)
 		effect:SetNormal(tr.HitNormal)
 		effect:SetAngles(tr.HitNormal:Angle())
 		effect:SetScale(shootEffect.Scale or 1)
-		effect:SetMagnitude(shootEffect.Magnitude or 1)
 		effect:SetRadius(shootEffect.Radius or 1)
-		effect:SetAttachment(weapon.MuzzleAttachment)
+		effect:SetMagnitude(shootEffect.Magnitude or 1)
+		effect:SetAttachment(weapon.MuzzleAttachment or 1)
 		util.Effect(shootEffect.EffectName or "", effect)
 
 	end
@@ -262,14 +268,17 @@ function SWEP:ShootEffects()
 	if self.EnableMuzzleEffect then
 	
 		local muzzleEffect = EffectData()
-		local muzzleAttach = self:GetAttachment(self.MuzzleAttachment)
+		local muzzleAttach = self:GetAttachment(self.MuzzleAttachment or 1)
 		muzzleEffect:SetEntity(self)
+		muzzleEffect:SetStart(muzzleAttach and muzzleAttach.Pos or self:GetPos())
 		muzzleEffect:SetOrigin(muzzleAttach and muzzleAttach.Pos or self:GetPos())
+		muzzleEffect:SetNormal(muzzleAttach and muzzleAttach.Ang:Forward() or self:GetForward())
 		muzzleEffect:SetAngles(muzzleAttach and muzzleAttach.Ang or self:GetAngles())
-		muzzleEffect:SetScale(1)
-		muzzleEffect:SetMagnitude(1)
-		muzzleEffect:SetRadius(1)
-		util.Effect(self.MuzzleEffect, muzzleEffect)
+		muzzleEffect:SetScale(self.MuzzleEffectScale or 1)
+		muzzleEffect:SetRadius(self.MuzzleEffectRadius or 1)
+		muzzleEffect:SetMagnitude(self.MuzzleEffectMagnitude or 1)
+		muzzleEffect:SetAttachment(self.MuzzleAttachment or 1)
+		util.Effect(self.MuzzleEffect or "", muzzleEffect)
 		
 		self:GetOwner():MuzzleFlash()
 	
@@ -278,14 +287,17 @@ function SWEP:ShootEffects()
 	if self.EnableShellEffect then
 	
 		local shellEffect = EffectData()
-		local shellAttach = self:GetAttachment(self.ShellAttachment)
+		local shellAttach = self:GetAttachment(self.ShellAttachment or 2)
 		shellEffect:SetEntity(self)
+		shellEffect:SetStart(shellAttach and shellAttach.Pos or self:GetPos())
 		shellEffect:SetOrigin(shellAttach and shellAttach.Pos or self:GetPos())
+		shellEffect:SetNormal(shellAttach and shellAttach.Ang:Forward() or self:GetForward())
 		shellEffect:SetAngles(shellAttach and shellAttach.Ang or self:GetAngles())
-		shellEffect:SetScale(1)
-		shellEffect:SetMagnitude(1)
-		shellEffect:SetRadius(1)
-		util.Effect(self.ShellEffect, shellEffect)
+		shellEffect:SetScale(self.ShellEffectScale or 1)
+		shellEffect:SetRadius(self.ShellEffectRadius or 1)
+		shellEffect:SetMagnitude(self.ShellEffectMagnitude or 1)
+		shellEffect:SetAttachment(self.ShellAttachment or 2)
+		util.Effect(self.ShellEffect or "", shellEffect)
 		
 	end
 
