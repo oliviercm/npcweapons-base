@@ -10,6 +10,8 @@
 --////If your addon needs this base to work, add this addon as a required item: https://steamcommunity.com/sharedfiles/filedetails/?id=2209643429
 --////Violating these rules is against Valve's Terms and Conditions (https://store.steampowered.com/subscriber_agreement/#4) and may get your addon removed from the Steam Workshop and your account TERMINATED!
 --////
+--////If you make an addon using this base, credit me (xyzzy) in the addon's description.
+--////
 --////This weapon base may only be uploaded by Steam user xyzzy, Steam ID STEAM_0:1:21671914.
 --////
 --////Copyright © 2016 by xyzzy, All rights reserved.
@@ -34,7 +36,8 @@ SWEP.IsNPCWeapon				= true
 --////When "developer 1" is enabled, the following information will display:
 --////Muzzle position (where the bullet comes from) - Blue cross
 --////Target position (where the bullet is aimed towards, without taking spread into account) - Red cross
---////Muzzleflash (starts at muzzle postion, extends in the direction of the muzzleflash effect) - Green line
+--////Hit position (where the bullet landed) - Purple cross
+--////Muzzle flash (starts at muzzle postion, extends in the direction of the muzzle flash effect) - Green line
 --////Shell eject (starts at shell eject postion, extends in the direction of the shell eject effect) - Yellow line
 --////Bullet distance, damage, and multipler from damage falloff - Text at the bullet impact position
 --////////////////////////////////////////////////////////////////////////////////
@@ -312,7 +315,8 @@ function SWEP:FireBulletsCallback(tr, dmgInfo)
 
 	if GetConVar("developer"):GetBool() then
 
-		debugoverlay.Text(tr.HitPos, "DISTANCE: "..math.Round(distance).." MULTIPLIER: "..math.Round(dropoff, 2).." DAMAGE: "..math.Round(dmgInfo:GetDamage()))
+        debugoverlay.Text(tr.HitPos, "DISTANCE: "..math.Round(distance).." MULTIPLIER: "..math.Round(dropoff, 2).." DAMAGE: "..math.Round(dmgInfo:GetDamage()))
+        debugoverlay.Cross(tr.HitPos, 3, 1, Color(255, 0, 255), true)
 
 	end
 
