@@ -108,11 +108,6 @@ SWEP.Primary.ExtraSounds		= nil --What extra sounds should we play after firing?
 SWEP.ForceWalking				= false --Should NPCs be forced to walk when shooting this weapon?
 SWEP.ForceWalkingTime			= 0 --How long to force NPCs to walk after shooting.
 
---Internal state tracking (don't touch)
-SWEP.LastEnemy					= nil --This value is used to store the owners last enemy, don't touch it.
-SWEP.LastActivity				= nil --This value is used to store the owners last activity, don't touch it.
-SWEP.LastTargetPos				= nil --This value is used to store the last shot position, don't touch it.
-
 --Head targeting table. If you want NPCs to aim at the body then set this to SWEP.AimForHeadTable = {} in your weapon's file.
 SWEP.AimForHeadTable			= { --Which entity classes to use HeadTarget() instead of BodyTarget() on. Only change this if you want NPCs to aim at the body instead of the head - if you set this to {} then NPCs will always aim at center of mass (chest/body).
 	player = true,
@@ -130,6 +125,18 @@ SWEP.AimForHeadTable			= { --Which entity classes to use HeadTarget() instead of
 	npc_zombie = true,
 	npc_zombine = true,
 }
+
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----//// Don't touch anything below this line unless you know what you are doing! ////------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+SWEP.LastEnemy					= nil
+SWEP.LastActivity				= nil
+SWEP.LastTargetPos				= nil
 
 function SWEP:Initialize()
 	
