@@ -77,7 +77,12 @@ SWEP.ExtraShootEffects			= nil --Which extra effects should we use when shooting
 SWEP.ReloadTime					= 0 --How long should reloads last in seconds? NPCs will not be able to fire for this much time after starting a reload.
 SWEP.ReloadSounds				= nil --Which sounds should we play when the gun is being reloaded? Should be a table of tables of {delay, sound}, eg. {{0.4, "ak47_clipout"}, {1.2, "ak47_clipin"}}. I highly recommend you use a soundscript here instead of a path to a raw sound file. Also, I recommend using CHAN_AUTO instead of CHAN_WEAPON here or your reload sound will stop and overwrite firing sounds (cutting them off), making it sound bad.
 
+--Weapon firing sounds (gunshot, shotgun pumping, rifle bolting, etc)
+SWEP.Primary.Sound				= "weapons/pistol/pistol_fire2.wav" --What gunshot sound should we play when the gun fires? If you use a table eg. {"sound_1", "sound_2", "sound_3"}, a random sound from the table will be chosen. I recommend using soundscripts instead of a path to a raw sound file. I also recommend using CHAN_WEAPON as the audio channel.
+SWEP.Primary.ExtraSounds		= nil --What extra sounds should we play after firing? This shouldn't be for the gunshot sound, but for stuff like pumping a shotgun slide or bolt action sounds. Should be a table of tables of {delay, sound}, eg. {{0.4, "bolt_back"}, {1.2, "bolt_forward"}} or {{0.4, "shotgun_pump"}}. I highly recommend you use soundscripts here instead of a path to a raw sound file so you can control the volume of the sound, etc.
+
 --Weapon stats
+SWEP.Primary.Type               = "bullet" --NOTE: Only "bullet" and "rocket" are supported right now, the rest are coming soon. What kind of weapon this is: "bullet", "rocket", "projectile", "bolt".
 SWEP.Primary.DamageMin			= 0 --How much minimum damage each bullet should do. Rule of thumb is average damage should be around 4-8 for small caliber weapons like pistols, 8-12 for medium caliber weapons like rifles, and 15+ for large caliber weapons like sniper rifles.
 SWEP.Primary.DamageMax			= 0 --How much maximum damage each bullet should do. Rule of thumb is average damage should be around 4-8 for small caliber weapons like pistols, 8-12 for medium caliber weapons like rifles, and 15+ for large caliber weapons like sniper rifles.
 SWEP.Primary.MinDropoffDistance = 0 --The minimum distance before damage begins to drop off.
@@ -100,9 +105,24 @@ SWEP.Primary.AimDelayMax		= 0 --How long should we wait before shooting a new en
 SWEP.Primary.Ammo				= "pistol" --The ammo type of the weapon. This doesn't do anything at the moment, but if picking up these guns is ever implemented then this is the ammo type that you would get.
 SWEP.Primary.InfiniteAmmo		= false --Should we never have to reload?
 
---Weapon firing sounds (gunshot, shotgun pumping, rifle bolting, etc)
-SWEP.Primary.Sound				= "weapons/pistol/pistol_fire2.wav" --What gunshot sound should we play when the gun fires? If you use a table eg. {"sound_1", "sound_2", "sound_3"}, a random sound from the table will be chosen. I recommend using soundscripts instead of a path to a raw sound file. I also recommend using CHAN_WEAPON as the audio channel.
-SWEP.Primary.ExtraSounds		= nil --What extra sounds should we play after firing? This shouldn't be for the gunshot sound, but for stuff like pumping a shotgun slide or bolt action sounds. Should be a table of tables of {delay, sound}, eg. {{0.4, "bolt_back"}, {1.2, "bolt_forward"}} or {{0.4, "shotgun_pump"}}. I highly recommend you use soundscripts here instead of a path to a raw sound file so you can control the volume of the sound, etc.
+--Rocket configuration. Required if SWEP.Primary.Type is "rocket". Only used if SWEP.Primary.Type is "rocket".
+SWEP.RocketModel                = "models/weapons/w_missile.mdl" --The model to use for the rocket.
+SWEP.RocketStartSpeed		    = 0 --The speed the rocket starts with.
+SWEP.RocketAcceleration	        = 0 --The acceleration of the rocket.
+SWEP.RocketExplosionRadius	    = 0 --Only used for "rocket" type rockets. The radius that damage is dealt. Damage decreases as the target gets farther away from the center of the explosion.
+SWEP.RocketHitEffect            = { Name = "Explosion", Radius = 1, Magnitude = 1, Scale = 1 } --The effect used at the rocket impact location.
+SWEP.RocketHitSound             = nil --The sound played at the rocket impact location.
+SWEP.RocketRotationSpeed        = nil --How quickly the rocket rotates in mid-air.
+SWEP.RocketLoopingSound         = nil --What sound to play as the rocket flies in mid-air, eg, the "woosh" and engine of the rocket.
+SWEP.RocketTrail                = {
+    Color = Color(255, 255, 255, 200),
+    Additive = true,
+    StartWidth = 5,
+    EndWidth = 0,
+    Lifetime = 0.3,
+    TextureRes = 0,
+    Texture = "trails/smoke.vmt",
+}
 
 --Additional weapon configuration
 SWEP.ForceWalking				= false --Should NPCs be forced to walk when shooting this weapon?
@@ -110,20 +130,20 @@ SWEP.ForceWalkingTime			= 0 --How long to force NPCs to walk after shooting.
 
 --Head targeting table. If you want NPCs to aim at the body then set this to SWEP.AimForHeadTable = {} in your weapon's file.
 SWEP.AimForHeadTable			= { --Which entity classes to use HeadTarget() instead of BodyTarget() on. Only change this if you want NPCs to aim at the body instead of the head - if you set this to {} then NPCs will always aim at center of mass (chest/body).
-	player = true,
-	npc_combine_s = true,
-	npc_citizen = true,
-	npc_alyx = true,
-	npc_barney = true,
-	npc_monk = true,
-	npc_eli = true,
-	npc_kleiner = true,
-	npc_magnusson = true,
-	npc_mossman = true,
-	npc_breen = true,
-	npc_metropolice = true,
-	npc_zombie = true,
-	npc_zombine = true,
+    player = true,
+    npc_combine_s = true,
+    npc_citizen = true,
+    npc_alyx = true,
+    npc_barney = true,
+    npc_monk = true,
+    npc_eli = true,
+    npc_kleiner = true,
+    npc_magnusson = true,
+    npc_mossman = true,
+    npc_breen = true,
+    npc_metropolice = true,
+    npc_zombie = true,
+    npc_zombine = true,
 }
 
 --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -139,488 +159,516 @@ SWEP.LastActivity				= nil
 SWEP.LastTargetPos				= nil
 
 function SWEP:Initialize()
-	
-	self:SetHoldType(self.HoldType)
-	
-	if SERVER then
-	
-		self:Think()
-		
-	end
+    
+    self:SetHoldType(self.HoldType)
+    
+    if SERVER then
+    
+        self:Think()
+        
+    end
 
-	if CLIENT and self.ClientModel then
+    if CLIENT and self.ClientModel then
 
-		self:CreateClientModel()
-			
-	end
+        self:CreateClientModel()
+            
+    end
 
 end
 
 function SWEP:Equip(owner)
 
-	local ownerClass = owner:GetClass()
-	if owner:IsPlayer() or ownerClass == "npc_vortigaunt" then --For some reason Vortigaunts can spawn with weapons but they can't really use them and it spawns as a crotchgun so lets not let that happen.
+    local ownerClass = owner:GetClass()
+    if owner:IsPlayer() or ownerClass == "npc_vortigaunt" then --For some reason Vortigaunts can spawn with weapons but they can't really use them and it spawns as a crotchgun so lets not let that happen.
 
-		self:Remove()
+        self:Remove()
 
-	end
+    end
 
 end
 
 function SWEP:PrimaryFire()
 
-	local currentEnemy = self.LastEnemy
-	local fireDelay = self.Primary.FireDelay
-	local burstCount = math.random(self.Primary.BurstMinShots, self.Primary.BurstMaxShots)
-	local burstDelay = math.Rand(self.Primary.BurstMinDelay, self.Primary.BurstMaxDelay)
-	
-	for i = 1, burstCount do
-		
-		timer.Simple((i - 1) * fireDelay, function()
-		
-			if not IsValid(self) then return end
+    local currentEnemy = self.LastEnemy
+    local fireDelay = self.Primary.FireDelay
+    local burstCount = math.random(self.Primary.BurstMinShots, self.Primary.BurstMaxShots)
+    local burstDelay = math.Rand(self.Primary.BurstMinDelay, self.Primary.BurstMaxDelay)
+    
+    for i = 1, burstCount do
+        
+        timer.Simple((i - 1) * fireDelay, function()
+        
+            if not IsValid(self) then return end
 
-			local owner = self:GetOwner()
-			if not IsValid(owner) then return end
-			if not self:CanPrimaryFire() then return end
-			if not owner:GetEnemy() or owner:GetEnemy() ~= currentEnemy then
+            local owner = self:GetOwner()
+            if not IsValid(owner) then return end
+            if not self:CanPrimaryFire() then return end
+            if not owner:GetEnemy() or owner:GetEnemy() ~= currentEnemy then
 
-				if not self.Primary.BurstCancellable and self.LastTargetPos then
+                if not self.Primary.BurstCancellable and self.LastTargetPos then
 
-					self:Shoot(self.LastTargetPos) --If the weapon is configured to not allow stopping bursts, keep firing at the last spot even if the enemy is already dead.
+                    self:Shoot(self.LastTargetPos) --If the weapon is configured to not allow stopping bursts, keep firing at the last spot even if the enemy is already dead.
 
-				end
+                end
 
-				return
+                return
 
-			end
+            end
 
-			self:Shoot()
-		
-		end)
-	
-	end
-	
-	self:SetNextPrimaryFire(CurTime() + burstCount * fireDelay + burstDelay)
-	
+            self:Shoot()
+        
+        end)
+    
+    end
+    
+    self:SetNextPrimaryFire(CurTime() + burstCount * fireDelay + burstDelay)
+    
 end
 
 function SWEP:Shoot(forceTargetPos) --forceTargetPos is used to force NPCs to shoot at air if their target is already dead but the gun is configured to fire full bursts without stopping
 
-	local owner = self:GetOwner()
-	local enemy = owner:GetEnemy()
+    local owner = self:GetOwner()
+    local enemy = owner:GetEnemy()
 
-	local muzzlePos = IsValid(enemy) and owner:GetPos():DistToSqr(enemy:GetPos()) > 16384 and self:GetAttachment(self.MuzzleAttachment).Pos or owner:WorldSpaceCenter()
-	local targetPos = forceTargetPos
-	
-	if not targetPos then
+    local muzzlePos = IsValid(enemy) and owner:GetPos():DistToSqr(enemy:GetPos()) > 16384 and self:GetAttachment(self.MuzzleAttachment).Pos or owner:WorldSpaceCenter()
+    local targetPos = forceTargetPos
+    
+    if not targetPos then
 
-		local enemyClass = enemy:GetClass()
-		if self.AimForHeadTable[enemyClass] then
+        local enemyClass = enemy:GetClass()
+        if self.AimForHeadTable[enemyClass] then
 
-			if enemy:IsPlayer() or enemyClass == "npc_combine_s" then -- Special logic for npc_combine_s because NPC:HeadTarget() doesn't return a good position when used on npc_combine_s
+            if enemy:IsPlayer() or enemyClass == "npc_combine_s" then -- Special logic for npc_combine_s because NPC:HeadTarget() doesn't return a good position when used on npc_combine_s
 
-				local headBone = enemy:LookupBone("ValveBiped.Bip01_Head1")
-				targetPos = (headBone and enemy:GetBonePosition(headBone)) or enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter() or enemy:GetPos()
-	
-			else
-	
-				targetPos = enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter() or enemy:GetPos()
-	
-			end
-	
-		else
+                local headBone = enemy:LookupBone("ValveBiped.Bip01_Head1")
+                targetPos = (headBone and enemy:GetBonePosition(headBone)) or enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter() or enemy:GetPos()
+    
+            else
+    
+                targetPos = enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter() or enemy:GetPos()
+    
+            end
+    
+        else
 
-			if enemy:IsPlayer() then
+            if enemy:IsPlayer() then
 
-				targetPos = enemy:WorldSpaceCenter() or enemy:GetPos() -- For some reason Player:BodyTarget() returns the head position so it's not usable here
-	
-			else
-	
-				targetPos = enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter() or enemy:GetPos()
-	
-			end
-	
-		end
+                targetPos = enemy:WorldSpaceCenter() or enemy:GetPos() -- For some reason Player:BodyTarget() returns the head position so it's not usable here
+    
+            else
+    
+                targetPos = enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter() or enemy:GetPos()
+    
+            end
+    
+        end
 
-	end
+    end
 
-	self.LastTargetPos = targetPos
+    self.LastTargetPos = targetPos
 
-	if GetConVar("developer"):GetBool() then
+    if GetConVar("developer"):GetBool() then
 
-		debugoverlay.Cross(muzzlePos, 3, 1, Color(0, 0, 255), true)
-		debugoverlay.Cross(targetPos, 3, 1, Color(255, 0, 0), true)
+        debugoverlay.Cross(muzzlePos, 3, 1, Color(0, 0, 255), true)
+        debugoverlay.Cross(targetPos, 3, 1, Color(255, 0, 0), true)
 
-	end
-	
-	local direction = (targetPos - muzzlePos):GetNormalized()
-	local spread = owner:IsMoving() and self.Primary.Spread * self.Primary.SpreadMoveMult or self.Primary.Spread
+    end
+    
+    local direction = (targetPos - muzzlePos):GetNormalized()
+    local spread = owner:IsMoving() and self.Primary.Spread * self.Primary.SpreadMoveMult or self.Primary.Spread
+    
+    if self.Primary.Type == "bullet" then
 
-	local bulletInfo = {}
-	bulletInfo.Attacker = owner
-	bulletInfo.Callback = self.FireBulletsCallback
-	bulletInfo.Damage = math.random(self.Primary.DamageMin, self.Primary.DamageMax) * GetConVar("npc_weapons_damage_mult"):GetFloat()
-	bulletInfo.Force  = self.Primary.Force
-	bulletInfo.Num = self.Primary.NumBullets
-	bulletInfo.Tracer = self.TracerX
-	bulletInfo.TracerName = self.EnableTracerEffect and self.TracerEffect or ""
-	bulletInfo.AmmoType = self.Primary.Ammo
-	bulletInfo.Dir = direction
-	bulletInfo.Spread = Vector(spread, spread, 0)
-	bulletInfo.Src = muzzlePos
-	
-	self:FireBullets(bulletInfo)
-	self:ShootEffects()
+        local bulletInfo = {}
+        bulletInfo.Attacker = owner
+        bulletInfo.Callback = self.FireBulletsCallback
+        bulletInfo.Damage = math.random(self.Primary.DamageMin, self.Primary.DamageMax) * GetConVar("npc_weapons_damage_mult"):GetFloat()
+        bulletInfo.Force  = self.Primary.Force
+        bulletInfo.Num = self.Primary.NumBullets
+        bulletInfo.Tracer = self.TracerX
+        bulletInfo.TracerName = self.EnableTracerEffect and self.TracerEffect or ""
+        bulletInfo.AmmoType = self.Primary.Ammo
+        bulletInfo.Dir = direction
+        bulletInfo.Spread = Vector(spread, spread, 0)
+        bulletInfo.Src = muzzlePos
+        
+        self:FireBullets(bulletInfo)
 
-	if self.ForceWalking then
-	
-		owner:SetMovementActivity(ACT_WALK)
-		self.ForceWalkingUntil = CurTime() + self.ForceWalkingTime
+    elseif self.Primary.Type == "rocket" then
 
-	end
-	
-	if not self.Primary.InfiniteAmmo then
-	
-		self:TakePrimaryAmmo(1)
-	
-	end
-	
+        local shootAngle = Vector(targetPos.x - muzzlePos.x, targetPos.y - muzzlePos.y, targetPos.z - muzzlePos.z):Angle()
+        shootAngle.p = shootAngle.p + math.Rand(-spread, spread)
+        shootAngle.y = shootAngle.y + math.Rand(-spread, spread)
+
+        local rocket = ents.Create("ai_rocket_projectile")
+        rocket:SetPos(muzzlePos)
+        rocket:SetAngles(shootAngle)
+        rocket:SetOwner(owner)
+        rocket.Damage = math.random(self.Primary.DamageMin, self.Primary.DamageMax)
+        rocket.Model = self.RocketModel
+        rocket.Speed = self.RocketStartSpeed
+        rocket.Acceleration = self.RocketAcceleration
+        rocket.ExplosionRadius = self.RocketExplosionRadius
+        rocket.RotationSpeed = self.RocketRotationSpeed
+        rocket.TrailData = self.RocketTrail
+        rocket.HitEffect = self.RocketHitEffect
+        rocket.LoopingSound = self.RocketLoopingSound
+        rocket.Owner = owner
+        
+        rocket:Spawn()
+
+    end
+
+    self:ShootEffects()
+
+    if self.ForceWalking then
+    
+        owner:SetMovementActivity(ACT_WALK)
+        self.ForceWalkingUntil = CurTime() + self.ForceWalkingTime
+
+    end
+    
+    if not self.Primary.InfiniteAmmo then
+    
+        self:TakePrimaryAmmo(1)
+    
+    end
+    
 end
 
 function SWEP:FireBulletsCallback(tr, dmgInfo)
 
-	local weapon = self:GetActiveWeapon()
-	if not IsValid(weapon) then return end
+    local weapon = self:GetActiveWeapon()
+    if not IsValid(weapon) then return end
 
-	local distance = tr.StartPos:Distance(tr.HitPos)
-	local dropoff = Lerp((distance - weapon.Primary.MinDropoffDistance) / weapon.Primary.MaxDropoffDistance, 1, weapon.Primary.MaxDropoffFactor)
-	
-	dmgInfo:ScaleDamage(dropoff)
+    local distance = tr.StartPos:Distance(tr.HitPos)
+    local dropoff = Lerp((distance - weapon.Primary.MinDropoffDistance) / weapon.Primary.MaxDropoffDistance, 1, weapon.Primary.MaxDropoffFactor)
+    
+    dmgInfo:ScaleDamage(dropoff)
 
-	for _, shootEffect in ipairs(weapon.ExtraShootEffects or {}) do
+    for _, shootEffect in ipairs(weapon.ExtraShootEffects or {}) do
 
-		local effect = EffectData()
-		effect:SetEntity(weapon)
-		effect:SetStart(tr.HitPos)
-		effect:SetOrigin(tr.HitPos)
-		effect:SetNormal(tr.HitNormal)
-		effect:SetAngles(tr.HitNormal:Angle())
-		effect:SetScale(shootEffect.Scale or 1)
-		effect:SetRadius(shootEffect.Radius or 1)
-		effect:SetMagnitude(shootEffect.Magnitude or 1)
-		effect:SetAttachment(weapon.MuzzleAttachment or 1)
-		util.Effect(shootEffect.EffectName or "", effect)
+        local effect = EffectData()
+        effect:SetEntity(weapon)
+        effect:SetStart(tr.HitPos)
+        effect:SetOrigin(tr.HitPos)
+        effect:SetNormal(tr.HitNormal)
+        effect:SetAngles(tr.HitNormal:Angle())
+        effect:SetScale(shootEffect.Scale or 1)
+        effect:SetRadius(shootEffect.Radius or 1)
+        effect:SetMagnitude(shootEffect.Magnitude or 1)
+        effect:SetAttachment(weapon.MuzzleAttachment or 1)
+        util.Effect(shootEffect.EffectName or "", effect)
 
-	end
+    end
 
-	if weapon.ImpactDecal then
+    if weapon.ImpactDecal then
 
-		util.Decal(weapon.ImpactDecal, tr.HitPos + tr.HitNormal, tr.HitPos - tr.HitNormal)
+        util.Decal(weapon.ImpactDecal, tr.HitPos + tr.HitNormal, tr.HitPos - tr.HitNormal)
 
-	end
+    end
 
-	if GetConVar("developer"):GetBool() then
+    if GetConVar("developer"):GetBool() then
 
         debugoverlay.Text(tr.HitPos, "DISTANCE: "..math.Round(distance).." MULTIPLIER: "..math.Round(dropoff, 2).." DAMAGE: "..math.Round(dmgInfo:GetDamage()))
         debugoverlay.Cross(tr.HitPos, 3, 1, Color(255, 0, 255), true)
 
-	end
+    end
 
 end
 
 function SWEP:ShootEffects()
-	
-	self:EmitSound(type(self.Primary.Sound) == "string" and self.Primary.Sound or self.Primary.Sound[math.random(#self.Primary.Sound)])
+    
+    self:EmitSound(type(self.Primary.Sound) == "string" and self.Primary.Sound or self.Primary.Sound[math.random(#self.Primary.Sound)])
 
-	if self.Primary.ExtraSounds then
+    if self.Primary.ExtraSounds then
 
-		for _, v in ipairs(self.Primary.ExtraSounds) do
+        for _, v in ipairs(self.Primary.ExtraSounds) do
 
-			timer.Simple(v[1], function()
-	
-				if IsValid(self) then
-		
-					sound.Play(v[2], self:GetPos())
-		
-				end
-		
-			end)
-	
-		end
+            timer.Simple(v[1], function()
+    
+                if IsValid(self) then
+        
+                    sound.Play(v[2], self:GetPos())
+        
+                end
+        
+            end)
+    
+        end
 
-	end
-	
-	if self.EnableMuzzleEffect then
-	
-		local muzzleEffect = EffectData()
-		local muzzleAttach = self:GetAttachment(self.MuzzleAttachment or 1)
-		local muzzlePos = muzzleAttach and muzzleAttach.Pos or self:GetPos()
-		local muzzleForward = muzzleAttach and muzzleAttach.Ang:Forward() or self:GetForward()
-		local muzzleAngles = muzzleAttach and muzzleAttach.Ang or self:GetAngles()
-		muzzleEffect:SetEntity(self)
-		muzzleEffect:SetStart(muzzlePos)
-		muzzleEffect:SetOrigin(muzzlePos)
-		muzzleEffect:SetNormal(muzzleForward)
-		muzzleEffect:SetAngles(muzzleAngles)
-		muzzleEffect:SetScale(self.MuzzleEffectScale or 1)
-		muzzleEffect:SetRadius(self.MuzzleEffectRadius or 1)
-		muzzleEffect:SetMagnitude(self.MuzzleEffectMagnitude or 1)
-		muzzleEffect:SetAttachment(self.MuzzleAttachment or 1)
-		util.Effect(self.MuzzleEffect or "", muzzleEffect)
-		
-		self:GetOwner():MuzzleFlash()
+    end
+    
+    if self.EnableMuzzleEffect then
+    
+        local muzzleEffect = EffectData()
+        local muzzleAttach = self:GetAttachment(self.MuzzleAttachment or 1)
+        local muzzlePos = muzzleAttach and muzzleAttach.Pos or self:GetPos()
+        local muzzleForward = muzzleAttach and muzzleAttach.Ang:Forward() or self:GetForward()
+        local muzzleAngles = muzzleAttach and muzzleAttach.Ang or self:GetAngles()
+        muzzleEffect:SetEntity(self)
+        muzzleEffect:SetStart(muzzlePos)
+        muzzleEffect:SetOrigin(muzzlePos)
+        muzzleEffect:SetNormal(muzzleForward)
+        muzzleEffect:SetAngles(muzzleAngles)
+        muzzleEffect:SetScale(self.MuzzleEffectScale or 1)
+        muzzleEffect:SetRadius(self.MuzzleEffectRadius or 1)
+        muzzleEffect:SetMagnitude(self.MuzzleEffectMagnitude or 1)
+        muzzleEffect:SetAttachment(self.MuzzleAttachment or 1)
+        util.Effect(self.MuzzleEffect or "", muzzleEffect)
+        
+        self:GetOwner():MuzzleFlash()
 
-		debugoverlay.Line(muzzlePos, muzzlePos + muzzleForward * 16, 1, Color(0, 255, 0))
-	
-	end
+        debugoverlay.Line(muzzlePos, muzzlePos + muzzleForward * 16, 1, Color(0, 255, 0))
+    
+    end
 
-	if self.EnableShellEffect then
+    if self.EnableShellEffect then
 
-		timer.Simple(self.ShellEffectDelay, function()
+        timer.Simple(self.ShellEffectDelay, function()
 
-			if IsValid(self) then
+            if IsValid(self) then
 
-				local shellEffect = EffectData()
-				local shellAttach = self:GetAttachment(self.ShellAttachment or 2)
-				local shellPos = shellAttach and shellAttach.Pos or self:GetPos()
-				local shellForward = shellAttach and shellAttach.Ang:Forward() or self:GetForward()
-				local shellAngles = shellAttach and shellAttach.Ang or self:GetAngles()
-				shellEffect:SetEntity(self)
-				shellEffect:SetStart(shellPos)
-				shellEffect:SetOrigin(shellPos)
-				shellEffect:SetNormal(shellForward)
-				shellEffect:SetAngles(shellAngles)
-				shellEffect:SetScale(self.ShellEffectScale or 1)
-				shellEffect:SetRadius(self.ShellEffectRadius or 1)
-				shellEffect:SetMagnitude(self.ShellEffectMagnitude or 1)
-				shellEffect:SetAttachment(self.ShellAttachment or 2)
-				util.Effect(self.ShellEffect or "", shellEffect)
+                local shellEffect = EffectData()
+                local shellAttach = self:GetAttachment(self.ShellAttachment or 2)
+                local shellPos = shellAttach and shellAttach.Pos or self:GetPos()
+                local shellForward = shellAttach and shellAttach.Ang:Forward() or self:GetForward()
+                local shellAngles = shellAttach and shellAttach.Ang or self:GetAngles()
+                shellEffect:SetEntity(self)
+                shellEffect:SetStart(shellPos)
+                shellEffect:SetOrigin(shellPos)
+                shellEffect:SetNormal(shellForward)
+                shellEffect:SetAngles(shellAngles)
+                shellEffect:SetScale(self.ShellEffectScale or 1)
+                shellEffect:SetRadius(self.ShellEffectRadius or 1)
+                shellEffect:SetMagnitude(self.ShellEffectMagnitude or 1)
+                shellEffect:SetAttachment(self.ShellAttachment or 2)
+                util.Effect(self.ShellEffect or "", shellEffect)
 
-				debugoverlay.Line(shellPos, shellPos + shellForward * 16, 1, Color(255, 255, 0))
+                debugoverlay.Line(shellPos, shellPos + shellForward * 16, 1, Color(255, 255, 0))
 
-			end
+            end
 
-		end)
+        end)
 
-	end
+    end
 
 end
 
 function SWEP:EmitReloadSounds()
 
-	if not self.ReloadSounds then return end
+    if not self.ReloadSounds then return end
 
-	for _, v in ipairs(self.ReloadSounds) do
+    for _, v in ipairs(self.ReloadSounds) do
 
-		timer.Simple(v[1], function()
+        timer.Simple(v[1], function()
 
-			if IsValid(self) then
-	
-				self:EmitSound(v[2])
-	
-			end
-	
-		end)
+            if IsValid(self) then
+    
+                self:EmitSound(v[2])
+    
+            end
+    
+        end)
 
-	end
+    end
 
 end
 
 function SWEP:Think()
-	
-	timer.Simple(0.01, function()
-		
-		if IsValid(self) then
-		
-			self:Think()
-			
-		end
-	
-	end)
-	
-	local owner = self:GetOwner()
-	if IsValid(owner) and owner:IsNPC() then
+    
+    timer.Simple(0.01, function()
+        
+        if IsValid(self) then
+        
+            self:Think()
+            
+        end
+    
+    end)
+    
+    local owner = self:GetOwner()
+    if IsValid(owner) and owner:IsNPC() then
 
-		local curtime = CurTime()
-		if self.ForceWalkingUntil and curtime > self.ForceWalkingUntil then
+        local curtime = CurTime()
+        if self.ForceWalkingUntil and curtime > self.ForceWalkingUntil then
 
-			owner:SetMovementActivity(ACT_RUN)
-			self.ForceWalkingUntil = nil
+            owner:SetMovementActivity(ACT_RUN)
+            self.ForceWalkingUntil = nil
 
-		end
+        end
 
-		local ownerActivity = owner:GetActivity()
-		if ownerActivity == ACT_RELOAD and self.LastActivity ~= ACT_RELOAD then
+        local ownerActivity = owner:GetActivity()
+        if ownerActivity == ACT_RELOAD and self.LastActivity ~= ACT_RELOAD then
 
-			self:SetNextPrimaryFireReload()
-			self:EmitReloadSounds()
+            self:SetNextPrimaryFireReload()
+            self:EmitReloadSounds()
 
-		end
-		self.LastActivity = ownerActivity
-		
-		local enemy = owner:GetEnemy()
-		if IsValid(enemy) then
-			
-			local enemyVisible = owner:Visible(enemy)
-			if enemy ~= self.LastEnemy or not enemyVisible then
+        end
+        self.LastActivity = ownerActivity
+        
+        local enemy = owner:GetEnemy()
+        if IsValid(enemy) then
+            
+            local enemyVisible = owner:Visible(enemy)
+            if enemy ~= self.LastEnemy or not enemyVisible then
 
-				self:SetNextPrimaryFireAimDelay()
-				self.LastEnemy = enemy
-			
-			end
-			local enemyIsAlive = enemy:Health() > 0 and enemy:GetMaxHealth() > 0
-			if self:GetNextPrimaryFire() <= curtime and self:CanPrimaryFire() and enemyIsAlive and enemyVisible then
+                self:SetNextPrimaryFireAimDelay()
+                self.LastEnemy = enemy
+            
+            end
+            local enemyIsAlive = enemy:Health() > 0 and enemy:GetMaxHealth() > 0
+            if self:GetNextPrimaryFire() <= curtime and self:CanPrimaryFire() and enemyIsAlive and enemyVisible then
 
-				self:PrimaryFire()
-			
-			end
-			
-		else
-			
-			self:SetNextPrimaryFireAimDelay()
+                self:PrimaryFire()
+            
+            end
+            
+        else
+            
+            self:SetNextPrimaryFireAimDelay()
 
-		end
+        end
 
-		if self:Clip1() <= 0 and not owner:IsCurrentSchedule(SCHED_RELOAD) and not owner:IsCurrentSchedule(SCHED_HIDE_AND_RELOAD) then
-	
-			owner:SetSchedule(SCHED_RELOAD)
-		
-		end
-		
-	end
-	
+        if self:Clip1() <= 0 and not owner:IsCurrentSchedule(SCHED_RELOAD) and not owner:IsCurrentSchedule(SCHED_HIDE_AND_RELOAD) then
+    
+            owner:SetSchedule(SCHED_RELOAD)
+        
+        end
+        
+    end
+    
 end
 
 function SWEP:CanPrimaryFire()
 
-	local owner = self:GetOwner()
-	if self:Clip1() <= 0 or owner:GetActivity() == ACT_RELOAD then
-	
-		return false
-	
-	end
-	
-	local enemy = owner:GetEnemy()
-	if IsValid(enemy) then
-	
-		local aimDirection = owner:GetAngles().y
-		local enemyDirection = Vector(enemy:GetPos() - owner:GetPos()):Angle().y
-		
-		if math.abs(enemyDirection - aimDirection) > 45 then
-		
-			return false
-		
-		end
-		
-	end
-	
-	return true
+    local owner = self:GetOwner()
+    if self:Clip1() <= 0 or owner:GetActivity() == ACT_RELOAD then
+    
+        return false
+    
+    end
+    
+    local enemy = owner:GetEnemy()
+    if IsValid(enemy) then
+    
+        local aimDirection = owner:GetAngles().y
+        local enemyDirection = Vector(enemy:GetPos() - owner:GetPos()):Angle().y
+        
+        if math.abs(enemyDirection - aimDirection) > 45 then
+        
+            return false
+        
+        end
+        
+    end
+    
+    return true
 
 end
 
 function SWEP:SetNextPrimaryFireReload()
 
-	local reloadtime = CurTime() + self.ReloadTime
-	if self:GetNextPrimaryFire() <= reloadtime then
+    local reloadtime = CurTime() + self.ReloadTime
+    if self:GetNextPrimaryFire() <= reloadtime then
 
-		self:SetNextPrimaryFire(reloadtime)
+        self:SetNextPrimaryFire(reloadtime)
 
-	end
+    end
 
 end
 
 function SWEP:SetNextPrimaryFireAimDelay()
 
-	local curtime = CurTime()
-	if self:GetNextPrimaryFire() <= curtime + self.Primary.AimDelayMax then
+    local curtime = CurTime()
+    if self:GetNextPrimaryFire() <= curtime + self.Primary.AimDelayMax then
 
-		local aimtime = math.Rand(self.Primary.AimDelayMin, self.Primary.AimDelayMax)
-		self:SetNextPrimaryFire(curtime + aimtime)
+        local aimtime = math.Rand(self.Primary.AimDelayMin, self.Primary.AimDelayMax)
+        self:SetNextPrimaryFire(curtime + aimtime)
 
-	end
+    end
 
 end
 
 function SWEP:DrawWorldModel()
 
-	local owner = self:GetOwner()
-	if not self.ClientModel or not IsValid(owner) then
+    local owner = self:GetOwner()
+    if not self.ClientModel or not IsValid(owner) then
 
-		self:DrawModel()
-		return
+        self:DrawModel()
+        return
 
-	end
+    end
 
-	local pos, ang = self:GetBoneOrientation(self.ClientModel.bone or "ValveBiped.Bip01_R_Hand", owner)
-	if !pos then
+    local pos, ang = self:GetBoneOrientation(self.ClientModel.bone or "ValveBiped.Bip01_R_Hand", owner)
+    if !pos then
 
-		return
+        return
 
-	end
-	
-	local model = self.ClientModelEnt
-	if not IsValid(model) then
-		
-		return
-	
-	end
-	
-	model:SetPos(pos + ang:Forward() * self.ClientModel.pos.x + ang:Right() * self.ClientModel.pos.y + ang:Up() * self.ClientModel.pos.z)
+    end
+    
+    local model = self.ClientModelEnt
+    if not IsValid(model) then
+        
+        return
+    
+    end
+    
+    model:SetPos(pos + ang:Forward() * self.ClientModel.pos.x + ang:Right() * self.ClientModel.pos.y + ang:Up() * self.ClientModel.pos.z)
 
-	ang:RotateAroundAxis(ang:Up(), self.ClientModel.angle.y)
-	ang:RotateAroundAxis(ang:Right(), self.ClientModel.angle.p)
-	ang:RotateAroundAxis(ang:Forward(), self.ClientModel.angle.r)
-	model:SetAngles(ang)
-	
-	local matrix = Matrix()
-	matrix:Scale(self.ClientModel.size or Vector(1, 1, 1))
-	model:EnableMatrix("RenderMultiply", matrix)
-	
-	if self.ClientModel.skin and self.ClientModel.skin ~= model:GetSkin() then
+    ang:RotateAroundAxis(ang:Up(), self.ClientModel.angle.y)
+    ang:RotateAroundAxis(ang:Right(), self.ClientModel.angle.p)
+    ang:RotateAroundAxis(ang:Forward(), self.ClientModel.angle.r)
+    model:SetAngles(ang)
+    
+    local matrix = Matrix()
+    matrix:Scale(self.ClientModel.size or Vector(1, 1, 1))
+    model:EnableMatrix("RenderMultiply", matrix)
+    
+    if self.ClientModel.skin and self.ClientModel.skin ~= model:GetSkin() then
 
-		model:SetSkin(self.ClientModel.skin)
+        model:SetSkin(self.ClientModel.skin)
 
-	end
-	
-	for k, v in pairs(self.ClientModel.bodygroup or {}) do
+    end
+    
+    for k, v in pairs(self.ClientModel.bodygroup or {}) do
 
-		model:SetBodygroup(k, v)
+        model:SetBodygroup(k, v)
 
-	end
-	
-	render.SetColorModulation(self.ClientModel.color.r / 255, self.ClientModel.color.g / 255, self.ClientModel.color.b / 255)
-	render.SetBlend(self.ClientModel.color.a / 255)
-	
+    end
+    
+    render.SetColorModulation(self.ClientModel.color.r / 255, self.ClientModel.color.g / 255, self.ClientModel.color.b / 255)
+    render.SetBlend(self.ClientModel.color.a / 255)
+    
 end
 
 function SWEP:CreateClientModel()
-		
-	if !IsValid(self.ClientModelEnt) then
+        
+    if !IsValid(self.ClientModelEnt) then
 
-		self.ClientModelEnt = ClientsideModel(self.ClientModel.model, RENDERGROUP_OPAQUE)
-		self.ClientModelEnt:SetPos(self:GetPos())
-		self.ClientModelEnt:SetAngles(self:GetAngles())
-		self.ClientModelEnt:SetParent(self)
-		
-	end
-	
+        self.ClientModelEnt = ClientsideModel(self.ClientModel.model, RENDERGROUP_OPAQUE)
+        self.ClientModelEnt:SetPos(self:GetPos())
+        self.ClientModelEnt:SetAngles(self:GetAngles())
+        self.ClientModelEnt:SetParent(self)
+        
+    end
+    
 end
 
 function SWEP:GetBoneOrientation(boneName, ent)
 
-	local bone = ent:LookupBone(boneName)
-	local matrix = bone and ent:GetBoneMatrix(bone) or nil
-	if matrix then
+    local bone = ent:LookupBone(boneName)
+    local matrix = bone and ent:GetBoneMatrix(bone) or nil
+    if matrix then
 
-		return matrix:GetTranslation(), matrix:GetAngles()
+        return matrix:GetTranslation(), matrix:GetAngles()
 
-	end
+    end
 
 end
 
 function SWEP:GetCapabilities()
-	return 0 --Prevents weapons from firing animation events (e.g. built-in HL2 guns muzzleflash & shell casings, NPCs "recoiling" from firing the gun)
+    return 0 --Prevents weapons from firing animation events (e.g. built-in HL2 guns muzzleflash & shell casings, NPCs "recoiling" from firing the gun)
 end
 
 function SWEP:PrimaryAttack()
@@ -628,40 +676,40 @@ function SWEP:PrimaryAttack()
 end
 
 function SWEP:SecondaryAttack()
-	return
+    return
 end
 
 function SWEP:OnDrop()
-	self:Remove()
+    self:Remove()
 end
 
 function SWEP:OnRemove()
 
-	--Something to do with clientside models and PVS, this was the solution I found that prevents a memory leak because models would get stuck and not get garbage collected after leaving the PVS and you have to manually remove them with Remove()
-	if CLIENT then
+    --Something to do with clientside models and PVS, this was the solution I found that prevents a memory leak because models would get stuck and not get garbage collected after leaving the PVS and you have to manually remove them with Remove()
+    if CLIENT then
 
-		if self.ClientModelEnt then
+        if self.ClientModelEnt then
 
-			self.ClientModelEnt:Remove()
+            self.ClientModelEnt:Remove()
 
-		end
+        end
 
-		timer.Simple(0, function()
-			
-			if IsValid(self) then
+        timer.Simple(0, function()
+            
+            if IsValid(self) then
 
-				self:CreateClientModel()
+                self:CreateClientModel()
 
-			end
+            end
 
-		end)
+        end)
 
-	end
+    end
 
 end
 
 function SWEP:CanBePickedUpByNPCs()
-	return true
+    return true
 end
 
 hook.Add("PlayerCanPickupWeapon", "NPCWeaponsDisallowPlayerPickup", function(ply, wep)
