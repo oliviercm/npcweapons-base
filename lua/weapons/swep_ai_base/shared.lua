@@ -2,7 +2,7 @@
 --////Author: xyzzy
 --////////////////////////////////////////////////////////////////////////////////
 --////This is the base for my NPC weapons.
---////Do not re-upload any part of this addon without my permission.
+--////Do not re-upload, reproduce, copy, modify, alter, or adapt any part of this addon without my permission.
 --////The main content pack using this base is here: https://steamcommunity.com/sharedfiles/filedetails/?id=632126535
 --////////////////////////////////////////////////////////////////////////////////
 
@@ -71,8 +71,8 @@ SWEP.Primary.Ammo				= "pistol" --The ammo type of the weapon. This doesn't do a
 SWEP.Primary.InfiniteAmmo		= false --Should we never have to reload?
 
 --Weapon firing sounds (gunshot, shotgun pumping, rifle bolting, etc)
-SWEP.Primary.Sound				= "weapons/pistol/pistol_fire2.wav" --What gunshot sound should we play when the gun fires? Multiple sounds can be added by using a table: {"sound_1", "sound_2", "sound_3"}. A random sound will be chosen. I recommend using a soundscript instead of a path to a raw sound file. I also recommend using CHAN_WEAPON here as the audio channel.
-SWEP.Primary.ExtraSounds		= nil --What extra sounds should we play after firing? This shouldn't be for the gunshot sound, but for stuff like pumping a shotgun slide or bolt action sounds. Should be a table of tables of {delay, sound}, eg. {{0.4, "bolt_back"}, {1.2, "bolt_forward"}} or {{0.4, "shotgun_pump"}}. I highly recommend you use a soundscript here instead of a path to a raw sound file. Also, I recommend using CHAN_AUTO instead of CHAN_WEAPON here or your extra sounds will stop and overwrite firing sounds (cutting them off), making it sound bad.
+SWEP.Primary.Sound				= "weapons/pistol/pistol_fire2.wav" --What gunshot sound should we play when the gun fires? If you use a table eg. {"sound_1", "sound_2", "sound_3"}, a random sound from the table will be chosen. I recommend using soundscripts instead of a path to a raw sound file. I also recommend using CHAN_WEAPON as the audio channel.
+SWEP.Primary.ExtraSounds		= nil --What extra sounds should we play after firing? This shouldn't be for the gunshot sound, but for stuff like pumping a shotgun slide or bolt action sounds. Should be a table of tables of {delay, sound}, eg. {{0.4, "bolt_back"}, {1.2, "bolt_forward"}} or {{0.4, "shotgun_pump"}}. I highly recommend you use soundscripts here instead of a path to a raw sound file so you can control the volume of the sound, etc.
 
 --Additional weapon configuration
 SWEP.ForceWalking				= false --Should NPCs be forced to walk when shooting this weapon?
@@ -83,7 +83,7 @@ SWEP.LastEnemy					= nil --This value is used to store the owners last enemy, do
 SWEP.LastActivity				= nil --This value is used to store the owners last activity, don't touch it.
 SWEP.LastTargetPos				= nil --This value is used to store the last shot position, don't touch it.
 
---Head targeting table
+--Head targeting table. If you want NPCs to aim at the body then set this to SWEP.AimForHeadTable = {} in your weapon's file.
 SWEP.AimForHeadTable			= { --Which entity classes to use HeadTarget() instead of BodyTarget() on. Only change this if you want NPCs to aim at the body instead of the head - if you set this to {} then NPCs will always aim at center of mass (chest/body).
 	player = true,
 	npc_combine_s = true,
@@ -122,7 +122,7 @@ end
 function SWEP:Equip(owner)
 
 	local ownerClass = owner:GetClass()
-	if owner:IsPlayer() or ownerClass == "npc_vortigaunt" then
+	if owner:IsPlayer() or ownerClass == "npc_vortigaunt" then --For some reason Vortigaunts can spawn with weapons but they can't really use them and it spawns as a crotchgun so lets not let that happen.
 
 		self:Remove()
 
@@ -150,7 +150,7 @@ function SWEP:PrimaryFire()
 
 				if not self.Primary.BurstCancellable and self.LastTargetPos then
 
-					self:Shoot(self.LastTargetPos)
+					self:Shoot(self.LastTargetPos) --If the weapon is configured to not allow stopping bursts, keep firing at the last spot even if the enemy is already dead.
 
 				end
 
@@ -168,7 +168,7 @@ function SWEP:PrimaryFire()
 	
 end
 
-function SWEP:Shoot(forceTargetPos)
+function SWEP:Shoot(forceTargetPos) --forceTargetPos is used to force NPCs to shoot at air if their target is already dead but the gun is configured to fire full bursts without stopping
 
 	local owner = self:GetOwner()
 	local enemy = owner:GetEnemy()
@@ -582,7 +582,7 @@ function SWEP:GetBoneOrientation(boneName, ent)
 end
 
 function SWEP:GetCapabilities()
-	return 0 --Prevents weapons from firing animation events (e.g. built-in HL2 guns muzzleflash & shell casings)
+	return 0 --Prevents weapons from firing animation events (e.g. built-in HL2 guns muzzleflash & shell casings, NPCs "recoiling" from firing the gun)
 end
 
 function SWEP:PrimaryAttack()
@@ -599,6 +599,7 @@ end
 
 function SWEP:OnRemove()
 
+	--Something to do with clientside models and PVS, this was the solution I found that prevents a memory leak because models would get stuck and not get garbage collected after leaving the PVS and you have to manually remove them with Remove()
 	if CLIENT then
 
 		if self.ClientModelEnt then
