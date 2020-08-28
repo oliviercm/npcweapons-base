@@ -30,7 +30,7 @@ SWEP.IsNPCWeapon				= true
 --////
 --////Then you can configure the following values that start with "SWEP.", eg. SWEP.Primary.DamageMax = 10
 --////
---////Most of the time, simply configuring the values below is going to be more than enough to get what you want, unless you're doing something like firing something other than bullets (rockets, crossbow bolts, moving projectiles).
+--////Most of the time, simply configuring the values below is going to be more than enough to get what you want.
 --////
 --////In order to help with development, you can use this command to display some debug info on your screen: "developer 1". It requires "sv_cheats" to be enabled.
 --////When "developer 1" is enabled, the following information will display:
@@ -90,7 +90,7 @@ SWEP.Primary.MinDropoffDistance = 0 --The minimum distance before damage begins 
 SWEP.Primary.MaxDropoffDistance = 1 --The maximum distance before damage drops off to the minimum damage.
 SWEP.Primary.MaxDropoffFactor   = 0.2 --The factor to multiply damage by when distance is equal to or more than the max dropoff distance.
 SWEP.Primary.Force				= 0 --How much force each bullet should do. Rule of thumb is set this as the average damage, but it should stay between 5 - 15. You usually don't want to go outside that range, otherwise bodies get thrown too soft/hard.
-SWEP.Primary.Spread				= 0 --How inaccurate the weapon should be. Examples: AWP - 0.003, M4A1 - 0.030, MAC10 - 0.060
+SWEP.Primary.Spread				= 0 --How inaccurate the weapon should be. Examples: AWP - 0.003, M4A1 - 0.030, MAC10 - 0.060. Spread acts differently for projectile weapons, you need a higher value to get the same amount of spread.
 SWEP.Primary.SpreadMoveMult		= 0 --How much should we multiply the spread if the NPC is moving? Higher values mean the weapon is more inaccurate while moving. Rule of thumb is 1.2 for rifles, 1.1 for pistols, 1 for SMGs, 1.3-1.5 for MGs, and 5+ for sniper rifles.
 SWEP.Primary.BurstMinShots		= 0 --How many times should we shoot in every burst, at minimum?
 SWEP.Primary.BurstMaxShots		= 0 --How many times should we shoot in every burst, at maximum?
@@ -98,7 +98,7 @@ SWEP.Primary.BurstMinDelay		= 0 --How much extra time should we wait between bur
 SWEP.Primary.BurstMaxDelay		= 0 --How much extra time should we wait between bursts, at maximum?
 SWEP.Primary.BurstCancellable	= true --Can bursts stop early? If this is false, NPCs will fire the full burst even if their target dies - the rest of the burst will be fired at the last position they shot at. This can look pretty weird if you have a high burst count (5+) so be careful, otherwise the NPC will be shooting air a lot.
 SWEP.Primary.FireDelay			= 0 --How much time should there be between each shot?
-SWEP.Primary.NumBullets			= 0 --How many bullets should there be for each shot? Most weapons would have this as 1, but shotguns would have a different value, like 8 or 9.
+SWEP.Primary.NumBullets			= 0 --How many bullets should there be for each shot? Most weapons would have this as 1, but shotguns would have a different value, like 8 or 9. This works for projectile weapons too.
 SWEP.Primary.ClipSize			= 0 --How many shots should we get per reload?
 SWEP.Primary.DefaultClip		= 0 --How many shots should the weapon spawn with in the magazine? Usually you want this the same as SWEP.Primary.ClipSize.
 SWEP.Primary.AimDelayMin		= 0 --How long should we wait before shooting a new enemy, at minimum?
@@ -300,29 +300,42 @@ function SWEP:Shoot(forceTargetPos) --forceTargetPos is used to force NPCs to sh
 
     elseif self.Primary.Type == "projectile" then
 
-        local shootAngle = Vector(targetPos.x - muzzlePos.x, targetPos.y - muzzlePos.y, targetPos.z - muzzlePos.z):Angle()
-        shootAngle.p = shootAngle.p + math.Rand(-spread, spread)
-        shootAngle.y = shootAngle.y + math.Rand(-spread, spread)
+        local projectiles = {}
+        for i = 1, self.Primary.NumBullets do
 
-        local projectile = ents.Create("ai_generic_projectile")
-        projectile:SetPos(muzzlePos)
-        projectile:SetAngles(shootAngle)
-        projectile:SetOwner(owner)
-        projectile.Damage = math.random(self.Primary.DamageMin, self.Primary.DamageMax)
-        projectile.DamageType = self.Primary.DamageType
-        projectile.Model = self.ProjectileModel
-        projectile.ModelScale = self.ProjectileModelScale
-        projectile.Speed = self.ProjectileStartSpeed
-        projectile.Acceleration = self.ProjectileAcceleration
-        projectile.HitEffect = self.ProjectileHitEffect
-        projectile.HitSound = self.ProjectileHitSound
-        projectile.LoopingSound = self.ProjectileLoopingSound
-        projectile.RotationSpeed = self.ProjectileRotationSpeed
-        projectile.IsExplosive = self.ProjectileIsExplosive
-        projectile.ExplosionRadius = self.ProjectileExplosionRadius
-        projectile.Trail = self.ProjectileTrail
-        
-        projectile:Spawn()
+            local shootAngle = Vector(targetPos.x - muzzlePos.x, targetPos.y - muzzlePos.y, targetPos.z - muzzlePos.z):Angle()
+            shootAngle.p = shootAngle.p + math.Rand(-spread, spread)
+            shootAngle.y = shootAngle.y + math.Rand(-spread, spread)
+
+            local projectile = ents.Create("ai_generic_projectile")
+            projectile:SetPos(muzzlePos)
+            projectile:SetAngles(shootAngle)
+            projectile:SetOwner(owner)
+            projectile.Damage = math.random(self.Primary.DamageMin, self.Primary.DamageMax)
+            projectile.DamageType = self.Primary.DamageType
+            projectile.Model = self.ProjectileModel
+            projectile.ModelScale = self.ProjectileModelScale
+            projectile.Speed = self.ProjectileStartSpeed
+            projectile.Acceleration = self.ProjectileAcceleration
+            projectile.HitEffect = self.ProjectileHitEffect
+            projectile.HitSound = self.ProjectileHitSound
+            projectile.LoopingSound = self.ProjectileLoopingSound
+            projectile.RotationSpeed = self.ProjectileRotationSpeed
+            projectile.IsExplosive = self.ProjectileIsExplosive
+            projectile.ExplosionRadius = self.ProjectileExplosionRadius
+            projectile.Trail = self.ProjectileTrail
+            
+            projectile:Spawn()
+
+            for _, proj in pairs(projectiles) do
+
+                constraint.NoCollide(projectile, proj, 0, 0)
+
+            end
+
+            table.insert(projectiles, projectile)
+
+        end
 
     end
 
