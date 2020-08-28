@@ -324,6 +324,7 @@ function SWEP:Shoot(forceTargetPos) --forceTargetPos is used to force NPCs to sh
             projectile.IsExplosive = self.ProjectileIsExplosive
             projectile.ExplosionRadius = self.ProjectileExplosionRadius
             projectile.Trail = self.ProjectileTrail
+            projectile.ImpactDecal = self.ImpactDecal
             
             projectile:Spawn()
 

@@ -135,6 +135,12 @@ function ENT:PhysicsCollide(data, physobj)
 
     end
 
+    if self.ImpactDecal then
+
+        util.Decal(self.ImpactDecal, data.HitPos - data.HitNormal, data.HitPos + data.HitNormal)
+
+    end
+
 	self:Remove()
 	
 end
