@@ -1,1 +1,2 @@
-CreateConVar("npc_weapons_damage_mult", 1, FCVAR_ARCHIVE + FCVAR_NOTIFY)
+CreateConVar("npc_weapons_damage_mult", 1, FCVAR_ARCHIVE + FCVAR_NOTIFY, "All damage dealt by weapons using the NPC Weapon base will be multiplied by this number.")
+CreateConVar("npc_weapons_force_animations", 0, FCVAR_ARCHIVE, "Force the correct animations to be used. This will NOT work without an addon that replaces NPC animations!")

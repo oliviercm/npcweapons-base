@@ -12,7 +12,7 @@
 --////
 --////If you make an addon using this base, credit me (xyzzy) in the addon's description.
 --////
---////This weapon base may only be uploaded by Steam user xyzzy, Steam ID STEAM_0:1:21671914.
+--////This addon and weapon base are not authorized for uploading on Steam or any other file sharing service except by the Steam user xyzzy, under the Steam ID STEAM_0:1:21671914.
 --////
 --////Copyright © 2016 by xyzzy, All rights reserved.
 --////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +106,7 @@ SWEP.Primary.AimDelayMax		= 0 --How long should we wait before shooting a new en
 SWEP.Primary.Ammo				= "pistol" --The ammo type of the weapon. This doesn't do anything at the moment, but if picking up these guns is ever implemented then this is the ammo type that you would get.
 SWEP.Primary.InfiniteAmmo		= false --Should we never have to reload?
 
---Projectile configuration. Used if SWEP.Primary.Type is "projectile".
+--Projectile configuration. Used if SWEP.Primary.Type is "projectile". Note that projectiles don't have damage falloff over distance.
 SWEP.ProjectileModel            = "models/weapons/w_missile.mdl" --The model to use for the projectile.
 SWEP.ProjectileModelScale       = 1 --How much to scale the projectile model by.
 SWEP.ProjectileStartSpeed       = 0 --The speed the projectile starts with.
