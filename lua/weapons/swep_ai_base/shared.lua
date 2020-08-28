@@ -13,7 +13,7 @@ SWEP.Category					= "NPC Weapons"
 SWEP.IsNPCWeapon				= true
 
 SWEP.WorldModel					= "models/weapons/w_pistol.mdl" --What model should we use as the world model?
-SWEP.ClientModel				= nil --Structure used to render clientside models. The world model is not drawn if a client model exists. { model : String, pos : Vector, angle : Angle, size : Vector, color : Color, skin : Number, bodygroup : Table, bone : String }
+SWEP.ClientModel				= nil --Table used to render clientside models. The world model is not drawn if a client model exists. { model : String, pos : Vector, angle : Angle, size : Vector, color : Color, skin : Number, bodygroup : Table, bone : String }
 SWEP.HoldType					= "pistol" --Which animation set should we use? "pistol": Hold like a pistol. Note that only half of the HL2 NPCs have pistol animations, the other ones will hold it like an SMG. "smg": Hold like an SMG, close to the hip while running. The offhand holds a vertical grip. "ar2": Hold like a rifle, high and at shoulder level. The offhand lays flat (when the NPC has animations for it). "shotgun": Hold low to the hip. Note that reloads will play a shotgun cocking sound if the holder is a female npc_citizen. "rpg": Hold high and on top of the shoulder.
 
 SWEP.MuzzleAttachment			= "1" --Where the muzzleflash and bullet should come out of on the weapon. Most models have this as 1 or "muzzle".
@@ -27,13 +27,13 @@ SWEP.ShellEffectScale    		= 1 --Shell effect scale.
 SWEP.ShellEffectRadius    		= 1 --Shell effect radius.
 SWEP.ShellEffectMagnitude    	= 1 --Shell effect magnitude.
 SWEP.TracerEffect				= "Tracer" --Which effect to use as the bullet tracer.
-SWEP.ReloadSounds				= nil --Which sounds should we play when the gun is being reloaded? Should be a table of tables of {delay, sound}, eg. {{0, "ak47_clipout"}, {0.8, "ak47_clipin"}}. I highly recommend you use a soundscript here instead of a path to a raw sound file. Also, I recommend using CHAN_AUTO instead of CHAN_WEAPON here or your reload sound will stop and overwrite firing sounds (cutting them off), making it sound bad.
+SWEP.ReloadSounds				= nil --Which sounds should we play when the gun is being reloaded? Should be a table of tables of {delay, sound}, eg. {{0.4, "ak47_clipout"}, {1.2, "ak47_clipin"}}. I highly recommend you use a soundscript here instead of a path to a raw sound file. Also, I recommend using CHAN_AUTO instead of CHAN_WEAPON here or your reload sound will stop and overwrite firing sounds (cutting them off), making it sound bad.
 SWEP.TracerX					= 1 --For every X bullets, show the tracer effect.
 SWEP.EnableTracerEffect    		= true --Enable tracer?
 SWEP.EnableMuzzleEffect    		= true --Enable muzzleflash?
 SWEP.EnableShellEffect    		= true --Enable shell casings?
-SWEP.ExtraShootEffects			= nil --Which extra effects should we use when shooting? This is useful if you want to display extra effects such as extra tracers, hit location effects, extra muzzleflashes, etc. Ex. Explosion at impact point: { { EffectName = "Explosion" } } or an extra tracer: { { EffectName = "GunshipTracer" } } or an extra muzzleflash { { EffectName: "ChopperMuzzleFlash" } }. The effects should all be in a table, so for example, if you wanted to use the two effects from before: { { EffectName = "Explosion" }, { EffectName = "ChopperMuzzleFlash" } }. You can add the following keys to each effect: "Scale", "Magnitude", "Radius" eg. { EffectName = "Explosion", Magnitude = 1337 }
-SWEP.ImpactDecal				= nil --What decal should we display at the impact point?
+SWEP.ExtraShootEffects			= nil --Which extra effects should we use when shooting? This is useful if you want to display extra tracers, hit location effects, extra muzzleflashes, etc. Ex. Explosion at impact point: { { EffectName = "Explosion" } } or an extra tracer: { { EffectName = "GunshipTracer" } } or an extra muzzleflash { { EffectName: "ChopperMuzzleFlash" } }. The effects should all be in a table, so for example, if you wanted to use the two effects from before: { { EffectName = "Explosion" }, { EffectName = "ChopperMuzzleFlash" } }. You can add the following keys to each effect: "Scale", "Magnitude", "Radius" eg. { EffectName = "Explosion", Magnitude = 1337 }
+SWEP.ImpactDecal				= nil --What decal should we display at the impact point? Eg. "Scorch" leaves an explosion scorch at the impact point.
 
 SWEP.ReloadTime					= 0 --How long should reloads last in seconds? NPCs will not be able to fire for this much time after starting a reload.
 SWEP.Primary.DamageMin			= 0 --How much minimum damage each bullet should do. Rule of thumb is average damage should be around 4-8 for small caliber weapons like pistols, 8-12 for medium caliber weapons like rifles, and 15+ for large caliber weapons like sniper rifles.
@@ -48,7 +48,7 @@ SWEP.Primary.BurstMinShots		= 0 --How many times should we shoot in every burst,
 SWEP.Primary.BurstMaxShots		= 0 --How many times should we shoot in every burst, at maximum?
 SWEP.Primary.BurstMinDelay		= 0 --How much extra time should we wait between bursts, at minimum?
 SWEP.Primary.BurstMaxDelay		= 0 --How much extra time should we wait between bursts, at maximum?
-SWEP.Primary.BurstCancellable	= true --Do bursts have to fire the full burst, or can they stop early?
+SWEP.Primary.BurstCancellable	= true --Can bursts stop early? If this is false, NPCs will fire the full burst even if their target dies - the rest of the burst will be fired at the last position they shot at. This can look pretty weird if you have a high burst count (5+) so be careful, otherwise the NPC will be shooting air a lot.
 SWEP.Primary.FireDelay			= 0 --How much time should there be between each shot?
 SWEP.Primary.NumBullets			= 0 --How many bullets should there be for each shot? Most weapons would have this as 1, but shotguns would have a different value, like 8 or 9.
 SWEP.Primary.ClipSize			= 0 --How many shots should we get per reload?
@@ -155,7 +155,7 @@ function SWEP:Shoot(forceTargetPos)
 	local owner = self:GetOwner()
 	local enemy = owner:GetEnemy()
 
-	local muzzlePos = IsValid(enemy) and owner:GetPos():Distance(enemy:GetPos()) > 128 and self:GetAttachment(self.MuzzleAttachment).Pos or owner:WorldSpaceCenter()
+	local muzzlePos = IsValid(enemy) and owner:GetPos():DistToSqr(enemy:GetPos()) > 16384 and self:GetAttachment(self.MuzzleAttachment).Pos or owner:WorldSpaceCenter()
 	local targetPos = forceTargetPos
 	
 	if not targetPos then
@@ -163,19 +163,14 @@ function SWEP:Shoot(forceTargetPos)
 		local enemyClass = enemy:GetClass()
 		if self.AimForHeadTable[enemyClass] then
 
-			if enemy:IsPlayer() then
+			if enemy:IsPlayer() or enemyClass == "npc_combine_s" then -- Special logic for npc_combine_s because NPC:HeadTarget() doesn't return a good position when used on npc_combine_s
 
 				local headBone = enemy:LookupBone("ValveBiped.Bip01_Head1")
-				targetPos = (headBone and enemy:GetBonePosition(headBone)) or enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter()
-	
-			elseif enemyClass == "npc_combine_s" then -- Special logic for npc_combine_s because NPC:HeadTarget() doesn't return a good position when used on npc_combine_s
-	
-				local headBone = enemy:LookupBone("ValveBiped.Bip01_Head1")
-				targetPos = (headBone and enemy:GetBonePosition(headBone)) or enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter()
+				targetPos = (headBone and enemy:GetBonePosition(headBone)) or enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter() or enemy:GetPos()
 	
 			else
 	
-				targetPos = enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter()
+				targetPos = enemy:HeadTarget(muzzlePos) or enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter() or enemy:GetPos()
 	
 			end
 	
@@ -183,11 +178,11 @@ function SWEP:Shoot(forceTargetPos)
 
 			if enemy:IsPlayer() then
 
-				targetPos = enemy:WorldSpaceCenter() -- For some reason Player:BodyTarget() returns the head position so it's not usable here
+				targetPos = enemy:WorldSpaceCenter() or enemy:GetPos() -- For some reason Player:BodyTarget() returns the head position so it's not usable here
 	
 			else
 	
-				targetPos = enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter()
+				targetPos = enemy:BodyTarget(muzzlePos) or enemy:WorldSpaceCenter() or enemy:GetPos()
 	
 			end
 	
@@ -196,8 +191,13 @@ function SWEP:Shoot(forceTargetPos)
 	end
 
 	self.LastTargetPos = targetPos
-	
-	debugoverlay.Cross(targetPos, 3, 1, Color(255,0,0), true)
+
+	if GetConVar("developer"):GetBool() then
+
+		debugoverlay.Cross(muzzlePos, 3, 1, Color(0, 0, 255), true)
+		debugoverlay.Cross(targetPos, 3, 1, Color(255, 0, 0), true)
+
+	end
 	
 	local direction = (targetPos - muzzlePos):GetNormalized()
 	local spread = owner:IsMoving() and self.Primary.Spread * self.Primary.SpreadMoveMult or self.Primary.Spread
@@ -236,18 +236,12 @@ end
 function SWEP:FireBulletsCallback(tr, dmgInfo)
 
 	local weapon = self:GetActiveWeapon()
-	if IsValid(weapon) then
+	if not IsValid(weapon) then return end
 
-		local distance = tr.StartPos:Distance(tr.HitPos)
-		local dropoff = Lerp((distance - weapon.Primary.MinDropoffDistance) / weapon.Primary.MaxDropoffDistance, 1, weapon.Primary.MaxDropoffFactor)
-		
-		dmgInfo:ScaleDamage(dropoff)
-
-	else
-
-		dmgInfo:ScaleDamage(0)
-
-	end
+	local distance = tr.StartPos:Distance(tr.HitPos)
+	local dropoff = Lerp((distance - weapon.Primary.MinDropoffDistance) / weapon.Primary.MaxDropoffDistance, 1, weapon.Primary.MaxDropoffFactor)
+	
+	dmgInfo:ScaleDamage(dropoff)
 
 	for _, shootEffect in ipairs(weapon.ExtraShootEffects or {}) do
 
@@ -268,6 +262,12 @@ function SWEP:FireBulletsCallback(tr, dmgInfo)
 	if weapon.ImpactDecal then
 
 		util.Decal(weapon.ImpactDecal, tr.HitPos + tr.HitNormal, tr.HitPos - tr.HitNormal)
+
+	end
+
+	if GetConVar("developer"):GetBool() then
+
+		debugoverlay.Text(tr.HitPos, "DISTANCE: "..math.Round(distance).." MULTIPLIER: "..math.Round(dropoff, 2).." DAMAGE: "..math.Round(dmgInfo:GetDamage()))
 
 	end
 
@@ -572,5 +572,5 @@ function SWEP:CanBePickedUpByNPCs()
 end
 
 hook.Add("PlayerCanPickupWeapon", "NPCWeaponsDisallowPlayerPickup", function(ply, wep)
-    if (wep.IsNPCWeapon) then return false end
+    if wep.IsNPCWeapon then return false end
 end)
