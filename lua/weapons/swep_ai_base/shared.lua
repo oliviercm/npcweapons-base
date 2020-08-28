@@ -3,6 +3,10 @@
 --////////////////////////////////////////////////////////////////////////////////
 --////This is the base for my NPC weapons.
 --////Do not re-upload, reproduce, copy, modify, alter, or adapt any part of this addon without my permission.
+--////You are allowed to use this base to make your own NPC weapons, but you CANNOT include any of the files from this addon in yours, including this base.
+--////If your addon needs this base to work, add this addon as a required item: https://steamcommunity.com/sharedfiles/filedetails/?id=2209643429
+--////Violating this is against Valve's Terms and Conditions (https://store.steampowered.com/subscriber_agreement/#4) and may get your addon removed from the Steam Workshop and your account TERMINATED!
+--////
 --////The main content pack using this base is here: https://steamcommunity.com/sharedfiles/filedetails/?id=632126535
 --////////////////////////////////////////////////////////////////////////////////
 
