@@ -82,7 +82,8 @@ SWEP.Primary.Sound				= "weapons/pistol/pistol_fire2.wav" --What gunshot sound s
 SWEP.Primary.ExtraSounds		= nil --What extra sounds should we play after firing? This shouldn't be for the gunshot sound, but for stuff like pumping a shotgun slide or bolt action sounds. Should be a table of tables of {delay, sound}, eg. {{0.4, "bolt_back"}, {1.2, "bolt_forward"}} or {{0.4, "shotgun_pump"}}. I highly recommend you use soundscripts here instead of a path to a raw sound file so you can control the volume of the sound, etc.
 
 --Weapon stats
-SWEP.Primary.Type               = "bullet" --NOTE: Only "bullet" and "rocket" are supported right now, the rest are coming soon. What kind of weapon this is: "bullet", "rocket", "projectile", "bolt".
+SWEP.Primary.Type               = "bullet" --"bullet", "projectile". Projectile can be explosive (rockets) or non-explosive.
+SWEP.Primary.DamageType         = DMG_BULLET --The damage type of the weapon. https://wiki.facepunch.com/gmod/Enums/DMG
 SWEP.Primary.DamageMin			= 0 --How much minimum damage each bullet should do. Rule of thumb is average damage should be around 4-8 for small caliber weapons like pistols, 8-12 for medium caliber weapons like rifles, and 15+ for large caliber weapons like sniper rifles.
 SWEP.Primary.DamageMax			= 0 --How much maximum damage each bullet should do. Rule of thumb is average damage should be around 4-8 for small caliber weapons like pistols, 8-12 for medium caliber weapons like rifles, and 15+ for large caliber weapons like sniper rifles.
 SWEP.Primary.MinDropoffDistance = 0 --The minimum distance before damage begins to drop off.
@@ -105,16 +106,19 @@ SWEP.Primary.AimDelayMax		= 0 --How long should we wait before shooting a new en
 SWEP.Primary.Ammo				= "pistol" --The ammo type of the weapon. This doesn't do anything at the moment, but if picking up these guns is ever implemented then this is the ammo type that you would get.
 SWEP.Primary.InfiniteAmmo		= false --Should we never have to reload?
 
---Rocket configuration. Required if SWEP.Primary.Type is "rocket". Only used if SWEP.Primary.Type is "rocket".
-SWEP.RocketModel                = "models/weapons/w_missile.mdl" --The model to use for the rocket.
-SWEP.RocketStartSpeed		    = 0 --The speed the rocket starts with.
-SWEP.RocketAcceleration	        = 0 --The acceleration of the rocket.
-SWEP.RocketExplosionRadius	    = 0 --Only used for "rocket" type rockets. The radius that damage is dealt. Damage decreases as the target gets farther away from the center of the explosion.
-SWEP.RocketHitEffect            = { Name = "Explosion", Radius = 1, Magnitude = 1, Scale = 1 } --The effect used at the rocket impact location.
-SWEP.RocketHitSound             = nil --The sound played at the rocket impact location.
-SWEP.RocketRotationSpeed        = nil --How quickly the rocket rotates in mid-air.
-SWEP.RocketLoopingSound         = nil --What sound to play as the rocket flies in mid-air, eg, the "woosh" and engine of the rocket.
-SWEP.RocketTrail                = {
+--Projectile configuration. Used if SWEP.Primary.Type is "projectile".
+SWEP.ProjectileModel            = "models/weapons/w_missile.mdl" --The model to use for the projectile.
+SWEP.ProjectileModelScale       = 1 --How much to scale the projectile model by.
+SWEP.ProjectileStartSpeed       = 0 --The speed the projectile starts with.
+SWEP.ProjectileAcceleration	    = 0 --The acceleration of the projectile.
+SWEP.ProjectileHitEffect        = { Name = "Explosion", Radius = 1, Magnitude = 1, Scale = 1 } --The effect used at the projectile impact location.
+SWEP.ProjectileHitSound         = nil --The sound played at the projectile impact location, eg. { Sound = "explosion.wav", Level = 75, Pitch = 100, Volume = 1, Channel = CHAN_AUTO }
+SWEP.ProjectileLoopingSound     = nil --What sound to play as the projectile flies in mid-air, eg. the "woosh" of the projectile.
+SWEP.ProjectileRotationSpeed    = nil --How quickly the projectile rotates in mid-air.
+SWEP.ProjectileIsExplosive      = true --If true, damage is dealt as an explosion where damage decreases by distance from the explosion. If false, damage is dealt only to the entity directly hit by the projectile.
+SWEP.ProjectileExplosionRadius  = 0 --Only used if the projectile is explosive. The radius that damage is dealt. Damage decreases as the target gets farther away from the center of the explosion. Force applied is calculated with the formula: (damage ^ 2) * 10.
+SWEP.ProjectileTrail            = {
+    Attachment = 0,
     Color = Color(255, 255, 255, 200),
     Additive = true,
     StartWidth = 5,
@@ -127,9 +131,21 @@ SWEP.RocketTrail                = {
 --Additional weapon configuration
 SWEP.ForceWalking				= false --Should NPCs be forced to walk when shooting this weapon?
 SWEP.ForceWalkingTime			= 0 --How long to force NPCs to walk after shooting.
+SWEP.AimAtBody                  = false --Whether to aim at the body (center of mass) instead of the head. Useful for projectile type weapons. Note that custom SNPCs (VJ Base, etc.) are always targeted at the center of mass anyways.
 
---Head targeting table. If you want NPCs to aim at the body then set this to SWEP.AimForHeadTable = {} in your weapon's file.
-SWEP.AimForHeadTable			= { --Which entity classes to use HeadTarget() instead of BodyTarget() on. Only change this if you want NPCs to aim at the body instead of the head - if you set this to {} then NPCs will always aim at center of mass (chest/body).
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+----//// Don't touch anything below this line unless you know what you are doing! ////------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+SWEP.LastEnemy					= nil
+SWEP.LastActivity				= nil
+SWEP.LastTargetPos				= nil
+
+SWEP.AimForHeadTable			= { --Which entity classes to use HeadTarget() instead of BodyTarget() on. If SWEP.AimAtBody is true, this table won't be used since we're aiming for the body.
     player = true,
     npc_combine_s = true,
     npc_citizen = true,
@@ -145,18 +161,6 @@ SWEP.AimForHeadTable			= { --Which entity classes to use HeadTarget() instead of
     npc_zombie = true,
     npc_zombine = true,
 }
-
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-----//// Don't touch anything below this line unless you know what you are doing! ////------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-SWEP.LastEnemy					= nil
-SWEP.LastActivity				= nil
-SWEP.LastTargetPos				= nil
 
 function SWEP:Initialize()
     
@@ -236,7 +240,7 @@ function SWEP:Shoot(forceTargetPos) --forceTargetPos is used to force NPCs to sh
     if not targetPos then
 
         local enemyClass = enemy:GetClass()
-        if self.AimForHeadTable[enemyClass] then
+        if !self.AimForBody and self.AimForHeadTable[enemyClass] then
 
             if enemy:IsPlayer() or enemyClass == "npc_combine_s" then -- Special logic for npc_combine_s because NPC:HeadTarget() doesn't return a good position when used on npc_combine_s
 
@@ -294,28 +298,31 @@ function SWEP:Shoot(forceTargetPos) --forceTargetPos is used to force NPCs to sh
         
         self:FireBullets(bulletInfo)
 
-    elseif self.Primary.Type == "rocket" then
+    elseif self.Primary.Type == "projectile" then
 
         local shootAngle = Vector(targetPos.x - muzzlePos.x, targetPos.y - muzzlePos.y, targetPos.z - muzzlePos.z):Angle()
         shootAngle.p = shootAngle.p + math.Rand(-spread, spread)
         shootAngle.y = shootAngle.y + math.Rand(-spread, spread)
 
-        local rocket = ents.Create("ai_rocket_projectile")
-        rocket:SetPos(muzzlePos)
-        rocket:SetAngles(shootAngle)
-        rocket:SetOwner(owner)
-        rocket.Damage = math.random(self.Primary.DamageMin, self.Primary.DamageMax)
-        rocket.Model = self.RocketModel
-        rocket.Speed = self.RocketStartSpeed
-        rocket.Acceleration = self.RocketAcceleration
-        rocket.ExplosionRadius = self.RocketExplosionRadius
-        rocket.RotationSpeed = self.RocketRotationSpeed
-        rocket.TrailData = self.RocketTrail
-        rocket.HitEffect = self.RocketHitEffect
-        rocket.LoopingSound = self.RocketLoopingSound
-        rocket.Owner = owner
+        local projectile = ents.Create("ai_generic_projectile")
+        projectile:SetPos(muzzlePos)
+        projectile:SetAngles(shootAngle)
+        projectile:SetOwner(owner)
+        projectile.Damage = math.random(self.Primary.DamageMin, self.Primary.DamageMax)
+        projectile.DamageType = self.Primary.DamageType
+        projectile.Model = self.ProjectileModel
+        projectile.ModelScale = self.ProjectileModelScale
+        projectile.Speed = self.ProjectileStartSpeed
+        projectile.Acceleration = self.ProjectileAcceleration
+        projectile.HitEffect = self.ProjectileHitEffect
+        projectile.HitSound = self.ProjectileHitSound
+        projectile.LoopingSound = self.ProjectileLoopingSound
+        projectile.RotationSpeed = self.ProjectileRotationSpeed
+        projectile.IsExplosive = self.ProjectileIsExplosive
+        projectile.ExplosionRadius = self.ProjectileExplosionRadius
+        projectile.Trail = self.ProjectileTrail
         
-        rocket:Spawn()
+        projectile:Spawn()
 
     end
 
@@ -345,6 +352,7 @@ function SWEP:FireBulletsCallback(tr, dmgInfo)
     local dropoff = Lerp((distance - weapon.Primary.MinDropoffDistance) / weapon.Primary.MaxDropoffDistance, 1, weapon.Primary.MaxDropoffFactor)
     
     dmgInfo:ScaleDamage(dropoff)
+    dmgInfo:SetDamageType(weapon.Primary.DamageType)
 
     for _, shootEffect in ipairs(weapon.ExtraShootEffects or {}) do
 
