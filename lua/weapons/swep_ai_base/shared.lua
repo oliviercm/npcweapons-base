@@ -21,6 +21,24 @@ SWEP.Contact					= "https://steamcommunity.com/id/theRealXyzzy/"
 SWEP.Category					= "NPC Weapons"
 SWEP.IsNPCWeapon				= true
 
+--////////////////////////////////////////////////////////////////////////////////
+--////Usage:
+--////
+--////Make an weapon that inherits from this base, eg. DEFINE_BASECLASS("swep_ai_base")
+--////
+--////Then you can configure the following values that start with "SWEP.", eg. SWEP.Primary.DamageMax = 10
+--////
+--////Most of the time, simply configuring the values below is going to be more than enough to get what you want, unless you're doing something like firing something other than bullets (rockets, crossbow bolts, moving projectiles).
+--////
+--////In order to help with development, you can use this command to display some debug info on your screen: "developer 1". It requires "sv_cheats" to be enabled.
+--////When "developer 1" is enabled, the following information will display:
+--////Muzzle position (where the bullet comes from) - Blue cross
+--////Target position (where the bullet is aimed towards, without taking spread into account) - Red cross
+--////Muzzleflash (starts at muzzle postion, extends in the direction of the muzzleflash effect) - Green line
+--////Shell eject (starts at shell eject postion, extends in the direction of the shell eject effect) - Yellow line
+--////Bullet distance, damage, and multipler from damage falloff - Text at the bullet impact position
+--////////////////////////////////////////////////////////////////////////////////
+
 --Weapon model and holdtype
 SWEP.WorldModel					= "models/weapons/w_pistol.mdl" --What model should we use as the world model? This determines where the bullet comes from and where the effects come from.
 SWEP.ClientModel				= nil --Table used to render clientside models. Useful if you want to display a model that isn't rigged properly for NPCs. The world model is not drawn if a client model exists. { model : String, pos : Vector, angle : Angle, size : Vector, color : Color, skin : Number, bodygroup : Table, bone : String }.
