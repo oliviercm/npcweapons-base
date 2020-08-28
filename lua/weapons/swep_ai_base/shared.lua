@@ -12,30 +12,42 @@ SWEP.Contact					= "https://steamcommunity.com/id/theRealXyzzy/"
 SWEP.Category					= "NPC Weapons"
 SWEP.IsNPCWeapon				= true
 
-SWEP.WorldModel					= "models/weapons/w_pistol.mdl" --What model should we use as the world model?
-SWEP.ClientModel				= nil --Table used to render clientside models. The world model is not drawn if a client model exists. { model : String, pos : Vector, angle : Angle, size : Vector, color : Color, skin : Number, bodygroup : Table, bone : String }
-SWEP.HoldType					= "pistol" --Which animation set should we use? "pistol": Hold like a pistol. Note that only half of the HL2 NPCs have pistol animations, the other ones will hold it like an SMG. "smg": Hold like an SMG, close to the hip while running. The offhand holds a vertical grip. "ar2": Hold like a rifle, high and at shoulder level. The offhand lays flat (when the NPC has animations for it). "shotgun": Hold low to the hip. Note that reloads will play a shotgun cocking sound if the holder is a female npc_citizen. "rpg": Hold high and on top of the shoulder.
+--Weapon model and holdtype
+SWEP.WorldModel					= "models/weapons/w_pistol.mdl" --What model should we use as the world model? This determines where the bullet comes from and where the effects come from.
+SWEP.ClientModel				= nil --Table used to render clientside models. Useful if you want to display a model that isn't rigged properly for NPCs. The world model is not drawn if a client model exists. { model : String, pos : Vector, angle : Angle, size : Vector, color : Color, skin : Number, bodygroup : Table, bone : String }.
+SWEP.HoldType					= "pistol" --Which animation set should we use? "pistol": Hold like a pistol. Note that only female citizens, Metropolice, and Alyx have pistol animations, other NPCs will hold it like an SMG. "smg": Hold like an SMG, close to the hip while running. The offhand holds a vertical grip. "ar2": Hold like a rifle, high and at shoulder level. The offhand lays flat (when the NPC has animations for it). "shotgun": Hold low to the hip. Note that reloads will play a shotgun cocking sound if the holder is a female npc_citizen. "rpg": Hold high and on top of the shoulder.
 
+--Muzzle flash effects
+SWEP.EnableMuzzleEffect    		= true --Enable muzzleflash?
 SWEP.MuzzleAttachment			= "1" --Where the muzzleflash and bullet should come out of on the weapon. Most models have this as 1 or "muzzle".
-SWEP.ShellAttachment			= "2" --Where the bullet casing should come out of on the weapon. Most models have this as 2.
 SWEP.MuzzleEffect    			= "MuzzleEffect" --Which effect to use as the muzzleflash.
 SWEP.MuzzleEffectScale    		= 1 --Muzzle effect scale.
 SWEP.MuzzleEffectRadius    		= 1 --Muzzle effect radius.
 SWEP.MuzzleEffectMagnitude    	= 1 --Muzzle effect magnitude.
+
+--Shell eject effects
+SWEP.EnableShellEffect    		= true --Enable shell casings?
+SWEP.ShellAttachment			= "2" --Where the bullet casing should come out of on the weapon. Most models have this as 2.
 SWEP.ShellEffect				= "ShellEject" --Which effect to use as the bullet casing.
 SWEP.ShellEffectScale    		= 1 --Shell effect scale.
 SWEP.ShellEffectRadius    		= 1 --Shell effect radius.
 SWEP.ShellEffectMagnitude    	= 1 --Shell effect magnitude.
-SWEP.TracerEffect				= "Tracer" --Which effect to use as the bullet tracer.
-SWEP.ReloadSounds				= nil --Which sounds should we play when the gun is being reloaded? Should be a table of tables of {delay, sound}, eg. {{0.4, "ak47_clipout"}, {1.2, "ak47_clipin"}}. I highly recommend you use a soundscript here instead of a path to a raw sound file. Also, I recommend using CHAN_AUTO instead of CHAN_WEAPON here or your reload sound will stop and overwrite firing sounds (cutting them off), making it sound bad.
-SWEP.TracerX					= 1 --For every X bullets, show the tracer effect.
-SWEP.EnableTracerEffect    		= true --Enable tracer?
-SWEP.EnableMuzzleEffect    		= true --Enable muzzleflash?
-SWEP.EnableShellEffect    		= true --Enable shell casings?
-SWEP.ExtraShootEffects			= nil --Which extra effects should we use when shooting? This is useful if you want to display extra tracers, hit location effects, extra muzzleflashes, etc. Ex. Explosion at impact point: { { EffectName = "Explosion" } } or an extra tracer: { { EffectName = "GunshipTracer" } } or an extra muzzleflash { { EffectName: "ChopperMuzzleFlash" } }. The effects should all be in a table, so for example, if you wanted to use the two effects from before: { { EffectName = "Explosion" }, { EffectName = "ChopperMuzzleFlash" } }. You can add the following keys to each effect: "Scale", "Magnitude", "Radius" eg. { EffectName = "Explosion", Magnitude = 1337 }
-SWEP.ImpactDecal				= nil --What decal should we display at the impact point? Eg. "Scorch" leaves an explosion scorch at the impact point.
+SWEP.ShellEffectDelay			= 0 --How long to delay the shell eject for. This is useful if you want to delay ejecting the shell after shooting (eg. pumping a shotgun after shooting, bolt action sniper rifle)
 
+--Tracer effects
+SWEP.EnableTracerEffect    		= true --Enable tracer?
+SWEP.TracerEffect				= "Tracer" --Which effect to use as the bullet tracer.
+SWEP.TracerX					= 1 --For every X bullets, show the tracer effect.
+
+--Additional effects (impact decal, additional tracers, additional muzzleflashes, additional effects at the hit position)
+SWEP.ImpactDecal				= nil --What decal should we display at the impact point? Eg. "Scorch" leaves an explosion scorch at the impact point.
+SWEP.ExtraShootEffects			= nil --Which extra effects should we use when shooting? This is useful if you want to display extra tracers, hit location effects, extra muzzleflashes, eg. Explosion at impact point: { { EffectName = "Explosion" } } or an extra tracer: { { EffectName = "GunshipTracer" } } or an extra muzzleflash { { EffectName: "ChopperMuzzleFlash" } }. The effects should all be in a table, so for example, if you wanted to use two effects at once: { { EffectName = "Explosion" }, { EffectName = "ChopperMuzzleFlash" } }. You can add the following keys to each effect: "Scale", "Magnitude", "Radius" eg. { EffectName = "Explosion", Magnitude = 1337, Scale = 404, Radius = 80085 }
+
+--Reloading
 SWEP.ReloadTime					= 0 --How long should reloads last in seconds? NPCs will not be able to fire for this much time after starting a reload.
+SWEP.ReloadSounds				= nil --Which sounds should we play when the gun is being reloaded? Should be a table of tables of {delay, sound}, eg. {{0.4, "ak47_clipout"}, {1.2, "ak47_clipin"}}. I highly recommend you use a soundscript here instead of a path to a raw sound file. Also, I recommend using CHAN_AUTO instead of CHAN_WEAPON here or your reload sound will stop and overwrite firing sounds (cutting them off), making it sound bad.
+
+--Weapon stats
 SWEP.Primary.DamageMin			= 0 --How much minimum damage each bullet should do. Rule of thumb is average damage should be around 4-8 for small caliber weapons like pistols, 8-12 for medium caliber weapons like rifles, and 15+ for large caliber weapons like sniper rifles.
 SWEP.Primary.DamageMax			= 0 --How much maximum damage each bullet should do. Rule of thumb is average damage should be around 4-8 for small caliber weapons like pistols, 8-12 for medium caliber weapons like rifles, and 15+ for large caliber weapons like sniper rifles.
 SWEP.Primary.MinDropoffDistance = 0 --The minimum distance before damage begins to drop off.
@@ -55,18 +67,24 @@ SWEP.Primary.ClipSize			= 0 --How many shots should we get per reload?
 SWEP.Primary.DefaultClip		= 0 --How many shots should the weapon spawn with in the magazine? Usually you want this the same as SWEP.Primary.ClipSize.
 SWEP.Primary.AimDelayMin		= 0 --How long should we wait before shooting a new enemy, at minimum?
 SWEP.Primary.AimDelayMax		= 0 --How long should we wait before shooting a new enemy, at maximum?
-SWEP.Primary.Sound				= "weapons/pistol/pistol_fire2.wav" --What sound should we play when the gun fires? Multiple sounds can be added by using a table: {"sound_1", "sound_2", "sound_3"}. A random sound will be chosen. I recommend using a soundscript instead of a path to a raw sound file. I also recommend using CHAN_WEAPON here as the audio channel.
 SWEP.Primary.Ammo				= "pistol" --The ammo type of the weapon. This doesn't do anything at the moment, but if picking up these guns is ever implemented then this is the ammo type that you would get.
 SWEP.Primary.InfiniteAmmo		= false --Should we never have to reload?
 
+--Weapon firing sounds (gunshot, shotgun pumping, rifle bolting, etc)
+SWEP.Primary.Sound				= "weapons/pistol/pistol_fire2.wav" --What gunshot sound should we play when the gun fires? Multiple sounds can be added by using a table: {"sound_1", "sound_2", "sound_3"}. A random sound will be chosen. I recommend using a soundscript instead of a path to a raw sound file. I also recommend using CHAN_WEAPON here as the audio channel.
+SWEP.Primary.ExtraSounds		= nil --What extra sounds should we play after firing? This shouldn't be for the gunshot sound, but for stuff like pumping a shotgun slide or bolt action sounds. Should be a table of tables of {delay, sound}, eg. {{0.4, "bolt_back"}, {1.2, "bolt_forward"}} or {{0.4, "shotgun_pump"}}. I highly recommend you use a soundscript here instead of a path to a raw sound file. Also, I recommend using CHAN_AUTO instead of CHAN_WEAPON here or your extra sounds will stop and overwrite firing sounds (cutting them off), making it sound bad.
+
+--Additional weapon configuration
 SWEP.ForceWalking				= false --Should NPCs be forced to walk when shooting this weapon?
 SWEP.ForceWalkingTime			= 0 --How long to force NPCs to walk after shooting.
 
+--Internal state tracking (don't touch)
 SWEP.LastEnemy					= nil --This value is used to store the owners last enemy, don't touch it.
 SWEP.LastActivity				= nil --This value is used to store the owners last activity, don't touch it.
 SWEP.LastTargetPos				= nil --This value is used to store the last shot position, don't touch it.
 
-SWEP.AimForHeadTable			= { --Which entity classes to use HeadTarget() instead of BodyTarget() on. Only change this if you want NPCs to aim at the body instead of the head.
+--Head targeting table
+SWEP.AimForHeadTable			= { --Which entity classes to use HeadTarget() instead of BodyTarget() on. Only change this if you want NPCs to aim at the body instead of the head - if you set this to {} then NPCs will always aim at center of mass (chest/body).
 	player = true,
 	npc_combine_s = true,
 	npc_citizen = true,
@@ -276,16 +294,37 @@ end
 function SWEP:ShootEffects()
 	
 	self:EmitSound(type(self.Primary.Sound) == "string" and self.Primary.Sound or self.Primary.Sound[math.random(#self.Primary.Sound)])
+
+	if self.Primary.ExtraSounds then
+
+		for _, v in ipairs(self.Primary.ExtraSounds) do
+
+			timer.Simple(v[1], function()
+	
+				if IsValid(self) then
+		
+					sound.Play(v[2], self:GetPos())
+		
+				end
+		
+			end)
+	
+		end
+
+	end
 	
 	if self.EnableMuzzleEffect then
 	
 		local muzzleEffect = EffectData()
 		local muzzleAttach = self:GetAttachment(self.MuzzleAttachment or 1)
+		local muzzlePos = muzzleAttach and muzzleAttach.Pos or self:GetPos()
+		local muzzleForward = muzzleAttach and muzzleAttach.Ang:Forward() or self:GetForward()
+		local muzzleAngles = muzzleAttach and muzzleAttach.Ang or self:GetAngles()
 		muzzleEffect:SetEntity(self)
-		muzzleEffect:SetStart(muzzleAttach and muzzleAttach.Pos or self:GetPos())
-		muzzleEffect:SetOrigin(muzzleAttach and muzzleAttach.Pos or self:GetPos())
-		muzzleEffect:SetNormal(muzzleAttach and muzzleAttach.Ang:Forward() or self:GetForward())
-		muzzleEffect:SetAngles(muzzleAttach and muzzleAttach.Ang or self:GetAngles())
+		muzzleEffect:SetStart(muzzlePos)
+		muzzleEffect:SetOrigin(muzzlePos)
+		muzzleEffect:SetNormal(muzzleForward)
+		muzzleEffect:SetAngles(muzzleAngles)
 		muzzleEffect:SetScale(self.MuzzleEffectScale or 1)
 		muzzleEffect:SetRadius(self.MuzzleEffectRadius or 1)
 		muzzleEffect:SetMagnitude(self.MuzzleEffectMagnitude or 1)
@@ -293,24 +332,39 @@ function SWEP:ShootEffects()
 		util.Effect(self.MuzzleEffect or "", muzzleEffect)
 		
 		self:GetOwner():MuzzleFlash()
+
+		debugoverlay.Line(muzzlePos, muzzlePos + muzzleForward * 16, 1, Color(0, 255, 0))
 	
 	end
 
 	if self.EnableShellEffect then
-	
-		local shellEffect = EffectData()
-		local shellAttach = self:GetAttachment(self.ShellAttachment or 2)
-		shellEffect:SetEntity(self)
-		shellEffect:SetStart(shellAttach and shellAttach.Pos or self:GetPos())
-		shellEffect:SetOrigin(shellAttach and shellAttach.Pos or self:GetPos())
-		shellEffect:SetNormal(shellAttach and shellAttach.Ang:Forward() or self:GetForward())
-		shellEffect:SetAngles(shellAttach and shellAttach.Ang or self:GetAngles())
-		shellEffect:SetScale(self.ShellEffectScale or 1)
-		shellEffect:SetRadius(self.ShellEffectRadius or 1)
-		shellEffect:SetMagnitude(self.ShellEffectMagnitude or 1)
-		shellEffect:SetAttachment(self.ShellAttachment or 2)
-		util.Effect(self.ShellEffect or "", shellEffect)
-		
+
+		timer.Simple(self.ShellEffectDelay, function()
+
+			if IsValid(self) then
+
+				local shellEffect = EffectData()
+				local shellAttach = self:GetAttachment(self.ShellAttachment or 2)
+				local shellPos = shellAttach and shellAttach.Pos or self:GetPos()
+				local shellForward = shellAttach and shellAttach.Ang:Forward() or self:GetForward()
+				local shellAngles = shellAttach and shellAttach.Ang or self:GetAngles()
+				shellEffect:SetEntity(self)
+				shellEffect:SetStart(shellPos)
+				shellEffect:SetOrigin(shellPos)
+				shellEffect:SetNormal(shellForward)
+				shellEffect:SetAngles(shellAngles)
+				shellEffect:SetScale(self.ShellEffectScale or 1)
+				shellEffect:SetRadius(self.ShellEffectRadius or 1)
+				shellEffect:SetMagnitude(self.ShellEffectMagnitude or 1)
+				shellEffect:SetAttachment(self.ShellAttachment or 2)
+				util.Effect(self.ShellEffect or "", shellEffect)
+
+				debugoverlay.Line(shellPos, shellPos + shellForward * 16, 1, Color(255, 255, 0))
+
+			end
+
+		end)
+
 	end
 
 end
@@ -319,11 +373,11 @@ function SWEP:EmitReloadSounds()
 
 	if not self.ReloadSounds then return end
 
-	for k, v in pairs(self.ReloadSounds) do
+	for _, v in ipairs(self.ReloadSounds) do
 
 		timer.Simple(v[1], function()
 
-			if IsValid(self) and IsValid(self:GetOwner()) then
+			if IsValid(self) then
 	
 				self:EmitSound(v[2])
 	
