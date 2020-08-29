@@ -129,7 +129,7 @@ function ENT:PhysicsCollide(data, physobj)
         hitEffect:SetRadius(self.HitEffect.Radius or 1)
         hitEffect:SetEntity(hitEnt)
 
-        local effectNormal = self.HitWorldEffect.ReverseForward and self:GetForward() or self:GetForward() * -1
+        local effectNormal = self.HitEffect.ReverseForward and self:GetForward() or self:GetForward() * -1
         hitEffect:SetAngles(effectNormal:Angle())
         hitEffect:SetNormal(effectNormal)
         util.Effect(self.HitEffect.Name or "", hitEffect)
