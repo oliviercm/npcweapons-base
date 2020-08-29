@@ -14,5 +14,5 @@ ENT.Acceleration					= 0
 ENT.Damage							= 0
 ENT.Force							= 0
 ENT.DamageType						= DMG_GENERIC
-ENT.HitEffect						= ""
-ENT.HitSound						= ""
+ENT.HitEffect						= { Name = "" }
+ENT.HitSound						= { Sound = "" }

@@ -128,10 +128,56 @@ function ENT:PhysicsCollide(data, physobj)
         hitEffect:SetMagnitude(self.HitEffect.Magnitude or 1)
         hitEffect:SetRadius(self.HitEffect.Radius or 1)
         hitEffect:SetEntity(hitEnt)
-        local backwardsNormalVector = self:GetForward() * -1
-        hitEffect:SetAngles(backwardsNormalVector:Angle())
-        hitEffect:SetNormal(backwardsNormalVector)
+
+        local effectNormal = self.HitWorldEffect.ReverseForward and self:GetForward() or self:GetForward() * -1
+        hitEffect:SetAngles(effectNormal:Angle())
+        hitEffect:SetNormal(effectNormal)
         util.Effect(self.HitEffect.Name or "", hitEffect)
+
+    end
+
+    if self.HitWorldEffect then
+
+        if data.HitEntity:IsWorld() then
+
+            local hitEffect = EffectData()
+            hitEffect:SetStart(self.HitPos or self:WorldSpaceCenter())
+            hitEffect:SetOrigin(self.HitPos or self:WorldSpaceCenter())
+            hitEffect:SetScale(self.HitWorldEffect.Scale or 1)
+            hitEffect:SetMagnitude(self.HitWorldEffect.Magnitude or 1)
+            hitEffect:SetRadius(self.HitWorldEffect.Radius or 1)
+            hitEffect:SetEntity(hitEnt)
+
+            local effectNormal = self.HitWorldEffect.ReverseForward and self:GetForward() or self:GetForward() * -1
+            hitEffect:SetAngles(effectNormal:Angle())
+            hitEffect:SetNormal(effectNormal)
+            util.Effect(self.HitWorldEffect.Name or "", hitEffect)
+
+        elseif self.HitWorldEffect.TraceThrough then
+
+            local traceData = {}
+            traceData.start = self.HitPos
+            traceData.endpos = self.HitPos + self:GetForward() * self.HitWorldEffect.TraceThrough
+            traceData.mask = MASK_NPCWORLDSTATIC
+            local trace = util.TraceLine(traceData)
+            if trace.Entity:IsWorld() then
+
+                local hitEffect = EffectData()
+                hitEffect:SetStart(trace.HitPos)
+                hitEffect:SetOrigin(trace.HitPos)
+                hitEffect:SetScale(self.HitWorldEffect.Scale or 1)
+                hitEffect:SetMagnitude(self.HitWorldEffect.Magnitude or 1)
+                hitEffect:SetRadius(self.HitWorldEffect.Radius or 1)
+                hitEffect:SetEntity(hitEnt)
+
+                local effectNormal = self.HitWorldEffect.ReverseForward and self:GetForward() or self:GetForward() * -1
+                hitEffect:SetAngles(effectNormal:Angle())
+                hitEffect:SetNormal(effectNormal)
+                util.Effect(self.HitWorldEffect.Name or "", hitEffect)
+
+            end
+
+        end
 
     end
 

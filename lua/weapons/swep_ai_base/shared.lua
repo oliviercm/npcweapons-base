@@ -111,7 +111,8 @@ SWEP.ProjectileModel            = "models/weapons/w_missile.mdl" --The model to 
 SWEP.ProjectileModelScale       = 1 --How much to scale the projectile model by.
 SWEP.ProjectileStartSpeed       = 0 --The speed the projectile starts with.
 SWEP.ProjectileAcceleration	    = 0 --The acceleration of the projectile.
-SWEP.ProjectileHitEffect        = { Name = "Explosion", Radius = 1, Magnitude = 1, Scale = 1 } --The effect used at the projectile impact location.
+SWEP.ProjectileHitEffect        = { Name = "Explosion", Radius = 1, Magnitude = 1, Scale = 1 } --The effect used at the projectile impact location. Keys: "Name" : String, "Radius" : Number, "Magnitude" : Number, "Scale" : Number, "ReverseForward" : Boolean (reverse the angle and normal of the effect)
+SWEP.ProjectileHitWorldEffect   = nil --The effect used at the projectile impact location, if it hits world. Compared to ProjectileHitEffect, has additional key "TraceThrough" : Number (trace a line of this length from the hit location and place the effect at the trace hit location if it hits world)
 SWEP.ProjectileHitSound         = nil --The sound played at the projectile impact location, eg. { Sound = "explosion.wav", Level = 75, Pitch = 100, Volume = 1, Channel = CHAN_AUTO }
 SWEP.ProjectileLoopingSound     = nil --What sound to play as the projectile flies in mid-air, eg. the "woosh" of the projectile.
 SWEP.ProjectileRotationSpeed    = nil --How quickly the projectile rotates in mid-air.
@@ -318,6 +319,7 @@ function SWEP:Shoot(forceTargetPos) --forceTargetPos is used to force NPCs to sh
             projectile.Speed = self.ProjectileStartSpeed
             projectile.Acceleration = self.ProjectileAcceleration
             projectile.HitEffect = self.ProjectileHitEffect
+            projectile.HitWorldEffect = self.ProjectileHitWorldEffect
             projectile.HitSound = self.ProjectileHitSound
             projectile.LoopingSound = self.ProjectileLoopingSound
             projectile.RotationSpeed = self.ProjectileRotationSpeed
